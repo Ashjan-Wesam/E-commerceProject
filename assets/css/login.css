@@ -1,0 +1,138 @@
+/* General styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+
+
+/* Login container */
+.login-container {
+    background-color: #fff;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    width: 350px;
+    text-align: center;
+}
+
+
+
+/* Heading styles */
+img {
+    margin-bottom: 10px;
+    color: #333;
+    font-size: 2rem;
+}
+
+h2 {
+    margin-bottom: 10px;
+    color: #555;
+    font-size: 1.2rem;
+}
+
+p {
+    margin-bottom: 20px;
+    color: #777;
+    font-size: 0.9rem;
+}
+
+
+.input-group {
+    display: flex;
+    align-items: center;
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 15px;
+}
+
+.input-group i {
+    color: #777;
+    font-size: 1rem;
+    margin-right: 10px;
+}
+
+.input-group input {
+    border: none;
+    background: none;
+    outline: none;
+    width: 100%;
+    font-size: 1rem;
+}
+
+
+
+/* Remember me section */
+.remember-me {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin-bottom: 15px;
+}
+
+.remember-me input {
+    margin-right: 5px;
+}
+
+.remember-me label {
+    color: #555;
+    font-size: 0.9rem;
+}
+
+
+/* Button */
+button {
+    width: 100%;
+    padding: 12px;
+    background-color: #81c408;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+button:hover {
+    background-color: #81a408;
+}
+
+
+
+/* Links */
+.links {
+    margin-top: 15px;
+    text-align: left; 
+}
+
+
+.links a {
+    display: inline;  
+    margin-left: 5px;  
+    color: #81c408;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+
+.links a:hover {
+    text-decoration: underline;
+}
+.Already_have_account{
+    text-align: center;
+}
+
+
+
+
+
