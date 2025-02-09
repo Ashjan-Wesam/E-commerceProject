@@ -5,20 +5,11 @@ require_once 'classes/User.php';
 $userObj = new User();
 $errors = [];
 
-<<<<<<< HEAD
-// ✅ تسجيل دخول تلقائي إذا كان المستخدم متذكرًا
-=======
->>>>>>> de50e4f1d107fd7e7d9137b413efa3fccf8eb121
 if ($userObj->autoLogin()) {
     header("Location: index.php");
     exit();
 }
 
-<<<<<<< HEAD
-// ✅ التحقق من المدخلات عند تقديم النموذج
-=======
-
->>>>>>> de50e4f1d107fd7e7d9137b413efa3fccf8eb121
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $email    = trim($_POST["email"]);
     $password = trim($_POST["password"]);
@@ -39,14 +30,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if (empty($errors)) {
         $result = $userObj->login($email, $password, $remember);
 
-<<<<<<< HEAD
-        if ($result === true) {
-            // ✅ توجيه المستخدم بناءً على دوره
-            if ($_SESSION['role'] === 'Admin') {
-                header("Location: admin.php");
-            } else {
-                header("Location: index.php");
-=======
         if ($result) {
             if ($_SESSION['role_id'] === 1) {
                 header("Location: views/dash.php");
@@ -58,7 +41,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             }
             else {
                 header("Location: register.php");
->>>>>>> de50e4f1d107fd7e7d9137b413efa3fccf8eb121
             }
             exit();
         } 
