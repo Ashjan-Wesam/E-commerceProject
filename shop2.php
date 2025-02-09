@@ -1,25 +1,38 @@
 <?php
+include_once 'config/Database.php';  
+include_once 'config/config.php';
+include_once 'classes/User.php';      
+include_once 'Product.php';
+include_once 'category.php';
 session_start();
 
-require_once 'config/config.php';
-require_once 'classes/User.php';
+if (!isset($_SESSION['cart'])) {
+    $_SESSION['cart'] = array();
+}
 
-$db = new Database();
-$conn = $db->conn;  
+function addToCart($productId) { 
+    $_SESSION['cart'][$productId] = ($_SESSION['cart'][$productId] ?? 0) + 1;
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_to_cart'])) {
+    $productId = $_POST['product_id'];
+    addToCart($productId);
+}
+
+$cartCount = array_sum($_SESSION['cart']);
+
+$db = new BDatabase();
+$conn = $db->getConnection(); 
 
 $userLoggedIn = false;
 $userName = "Guest";
 $userEmail = "";
 $userAddress = "";
 
-
 if (isset($_SESSION['user_id'])) {
     $userLoggedIn = true;
 
-   
     $userObj = new User();
-    
-    
     $userData = $userObj->getUserById($_SESSION['user_id']);
 
     if ($userData) {
@@ -28,39 +41,33 @@ if (isset($_SESSION['user_id'])) {
         $userAddress = $userData['address'];
     }
 }
-if (!isset($_SESSION["cart"])) {
-    $_SESSION["cart"] = [];
-}
 
-$total = 0;
+$product = new Product($conn);  
+$category = new Category($conn);
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    if (isset($_POST["update_quantity"])) {
-        $key = $_POST["product_key"];
-        if ($_POST["update_quantity"] == "increase") {
-            $_SESSION["cart"][$key]["quantity"]++;
-        } elseif ($_POST["update_quantity"] == "decrease" && $_SESSION["cart"][$key]["quantity"] > 1) {
-            $_SESSION["cart"][$key]["quantity"]--;
-        }
-    } elseif (isset($_POST["remove_item"])) {
-        $key = $_POST["product_key"];
-        unset($_SESSION["cart"][$key]);
-    }
-    header("Location: cart.php");
-    exit;
-}
+$category_stmt = $category->getCategories();
+
+// استقبال بيانات البحث مع تأمين المدخلات
+$search_query = isset($_GET['search']) ? trim($_GET['search']) : '';
+$category_id = isset($_GET['category_id']) ? $_GET['category_id'] : '';
+$max_price = isset($_GET['max_price']) ? $_GET['max_price'] : 100;
+$sort_order = isset($_GET['sort_order']) ? $_GET['sort_order'] : 'asc';
+
+// تنفيذ الفلترة
+$stmt = $product->readFiltered($category_id, 0, $max_price, $search_query, $sort_order);
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <title>Fruitables - Vegetable Website Template</title>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <meta content="" name="keywords">
-    <meta content="" name="description">
-     <!-- Google Web Fonts -->
-     <link rel="preconnect" href="https://fonts.googleapis.com">
+<meta charset="utf-8">
+        <title>Fruitables - Vegetable Website Template</title>
+        <meta content="width=device-width, initial-scale=1.0" name="viewport">
+        <meta content="" name="keywords">
+        <meta content="" name="description">
+
+        <!-- Google Web Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Raleway:wght@600;800&display=swap" rel="stylesheet"> 
 
@@ -78,15 +85,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         <!-- Template Stylesheet -->
         <link href="assets/css/style.css" rel="stylesheet">
+        
 </head>
 <body>
-    <!-- Spinner Start -->
-    <div id="spinner" class="show w-100 vh-100 bg-white position-fixed translate-middle top-50 start-50 d-flex align-items-center justify-content-center">
-        <div class="spinner-grow text-primary" role="status"></div>
-    </div>
-    <!-- Spinner End -->
 
-    <!-- Navbar Start -->
+ 
+        <!-- Spinner Start -->
+        <div id="spinner" class="show w-100 vh-100 bg-white position-fixed translate-middle top-50 start-50  d-flex align-items-center justify-content-center">
+            <div class="spinner-grow text-primary" role="status"></div>
+        </div>
+        <!-- Spinner End -->
+
+
+      <!-- Navbar Start -->
     <div class="container-fluid fixed-top">
         <div class="container topbar bg-primary d-none d-lg-block">
             <div class="d-flex justify-content-between">
@@ -115,11 +126,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </button>
                 <div class="collapse navbar-collapse bg-white" id="navbarCollapse">
                     <div class="navbar-nav mx-auto">
-                        <a href="index.php" class="nav-item nav-link active">Home</a>
-                        <a href="shop2.php" class="nav-item nav-link">Shop</a>
+                        <a href="index.php" class="nav-item nav-link ">Home</a>
+                        <a href="shop2.php" class="nav-item nav-link active">Shop</a>
                         <a href="packages.php" class="nav-item nav-link">Package</a>
             
-                        <a href="contact.html" class="nav-item nav-link">Contact</a>
+                        <a href="contact.php" class="nav-item nav-link">Contact</a>
                     </div>
                     <div class="d-flex m-3 me-0">
                         <button class="btn-search btn border border-secondary btn-md-square rounded-circle bg-white me-4" data-bs-toggle="modal" data-bs-target="#searchModal"><i class="fas fa-search text-primary"></i></button>
@@ -152,61 +163,69 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
     </div>
     <!-- Navbar End -->
-         <br><br><br><br>
-    <div class="container">
-        <h1 class="mt-5">Shopping Cart</h1>
-        <table class="table mt-4">
-            <thead>
-                <tr>
-                    <th>Image</th>
-                    <th>Name</th>
-                    <th>Price</th>
-                    <th>Quantity</th>
-                    <th>Total</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (!empty($_SESSION["cart"])) : ?>
-                    <?php foreach ($_SESSION["cart"] as $key => $item) :
-                        $subtotal = $item["price"] * $item["quantity"];
-                        $total += $subtotal;
-                    ?>
-                        <tr>
-                            <td><img src="<?= htmlspecialchars($item["image"]) ?>" width="50"></td>
-                            <td><?= htmlspecialchars($item["name"]) ?></td>
-                            <td>$<?= number_format($item["price"], 2) ?></td>
-                            <td>
-                                <form method="POST" class="d-flex align-items-center" id="form">
-                                    <input type="hidden" name="product_key" value="<?= $key ?>">
-                                    <button type="submit" name="update_quantity" value="decrease" class="btn btn-sm btn-light border">-</button>
-                                    <span class="mx-2"><?= $item["quantity"] ?></span>
-                                    <button type="submit" name="update_quantity" value="increase" class="btn btn-sm btn-light border">+</button>
-                                </form>
-                            </td>
-                            <td>$<?= number_format($subtotal, 2) ?></td>
-                            <td>
-                                <form method="POST">
-                                    <input type="hidden" name="product_key" value="<?= $key ?>">
-                                    <button type="submit" name="remove_item" class="btn btn-danger btn-sm">Remove</button>
-                                </form>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php else : ?>
-                    <tr>
-                        <td colspan="6" class="text-center">Your cart is empty.</td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
-        <h3>Total: $<?= number_format($total, 2) ?></h3>
-        <a href="checkout.php" class="btn btn-success">Proceed to Checkout</a>
-    </div>
 
-    
-        <!-- Footer Start -->
-        <div class="container-fluid bg-dark text-white-50 footer pt-5 mt-5">
+<div class="container-fluid fruite py-5">
+    <div class="container py-5">
+        <h1 class="mb-4">Fresh Fruits Shop</h1>
+        <div class="row g-4">
+            <div class="col-lg-3">
+                <!-- search -->
+                <form method="GET" action="">
+                    <input id="keyword" type="text" name="search" class="form-control p-3" placeholder="Search..." value="<?php echo htmlspecialchars($search_query); ?>">
+                    <input type="submit" value="Search" class="btn btn-primary mt-2">
+                </form>
+
+                <!-- Categories -->
+                <h4 class="mt-4">Categories</h4>
+                <ul class="list-unstyled fruite-categorie">
+                    <?php while ($category_row = $category_stmt->fetch(PDO::FETCH_ASSOC)) { ?>
+                        <li>
+                            <a href="?category_id=<?php echo $category_row['id']; ?>">
+                                <?php echo htmlspecialchars($category_row['name']); ?>
+                            </a>
+                        </li>
+                    <?php } ?>
+                </ul>
+
+                <!-- Price  filter-->
+                <h4 class="mt-4">Filter by Price</h4>
+                <form method="GET" action="">
+                    <input type="range" name="max_price" min="0" max="100" value="<?php echo $max_price; ?>" oninput="amount.value=max_price.value">
+                    <output id="amount">$<?php echo $max_price; ?></output>
+                    <input type="submit" value="Apply" class="btn btn-primary mt-2">
+                </form>
+            </div>
+            <div class="col-lg-9">
+                <!-- Products  -->
+              
+                <div class="row g-4">
+                <?php while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) { ?>
+    <div class="col-md-6 col-lg-4">
+        <div class="rounded position-relative fruite-item">
+            <a href="product-detail.php?id=<?php echo $row['id']; ?>">
+                <img src="<?php echo htmlspecialchars($row['image']); ?>" class="img-fluid w-100 rounded-top" alt="<?php echo htmlspecialchars($row['name']); ?>">
+            </a>
+          
+            <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">
+                <?php echo htmlspecialchars($row['category_name']); ?>
+            </div>
+            <div class="p-4 border border-secondary border-top-0 rounded-bottom">
+                <h4><?php echo htmlspecialchars($row['name']); ?></h4>
+                <p>$<?php echo htmlspecialchars($row['price']); ?></p>
+                <a href="product-detail.php?id=<?php echo $row['id']; ?>" class="btn btn-primary">View Details</a>
+            </div>
+        </div>
+    </div>
+<?php } ?>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+   <!-- Footer Start -->
+   <div class="container-fluid bg-dark text-white-50 footer pt-5 mt-5">
             <div class="container py-5">
                 <div class="pb-4 mb-4" style="border-bottom: 1px solid rgba(226, 175, 24, 0.5) ;">
                     <div class="row g-4">
@@ -270,7 +289,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <p>Email: Example@gmail.com</p>
                             <p>Phone: +0123 4567 8910</p>
                             <p>Payment Accepted</p>
-                            <img src="img/payment.png" class="img-fluid" alt="">
+                            <img src="" class="img-fluid" alt="">
                         </div>
                     </div>
                 </div>
@@ -286,9 +305,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <span class="text-light"><a href="#"><i class="fas fa-copyright text-light me-2"></i>Your Site Name</a>, All right reserved.</span>
                     </div>
                     <div class="col-md-6 my-auto text-center text-md-end text-white">
-                        <!--/* This template is free as long as you keep the below author’s credit link/attribution link/backlink. */-->
-                        <!--/* If you'd like to use the template without the below author’s credit link/attribution link/backlink, */-->
-                        <!--/* you can purchase the Credit Removal License from "https://htmlcodex.com/credit-removal". */-->
+                        <!--/*** This template is free as long as you keep the below author’s credit link/attribution link/backlink. ***/-->
+                        <!--/*** If you'd like to use the template without the below author’s credit link/attribution link/backlink, ***/-->
+                        <!--/*** you can purchase the Credit Removal License from "https://htmlcodex.com/credit-removal". ***/-->
                         Designed By <a class="border-bottom" href="https://htmlcodex.com">HTML Codex</a> Distributed By <a class="border-bottom" href="https://themewagon.com">ThemeWagon</a>
                     </div>
                 </div>
@@ -299,9 +318,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
         <!-- Back to Top -->
-        <a href="#" class="btn btn-primary border-3 border-primary rounded-circle back-to-top"><i class="fa fa-arrow-up"></i></a>
+        <a href="#" class="btn btn-primary border-3 border-primary rounded-circle back-to-top"><i class="fa fa-arrow-up"></i></a>   
 
-
+        
     <!-- JavaScript Libraries -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -309,28 +328,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <script src="assets/lib/waypoints/waypoints.min.js"></script>
     <script src="assets/lib/lightbox/js/lightbox.min.js"></script>
     <script src="assets/lib/owlcarousel/owl.carousel.min.js"></script>
-    
-
-    <!-- jQuery -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-<!-- Owl Carousel CSS -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.min.css">
-
-<!-- Owl Carousel JS -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
-
-
+   
 
     <!-- Template Javascript -->
-    <script src="assets/js/main.js"></script>
-    <script src="assets/assets/js/cart.js"></script>
-    <script>
-    document.addEventListener("DOMContentLoaded", updateCartCount);
-    </script> 
-
-
-    
+    <script src="assets/js/main.js"></script> 
+    <script src="assets/js/cart.js"></script>
 </body>
 </html>

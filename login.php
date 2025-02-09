@@ -5,13 +5,12 @@ require_once 'classes/User.php';
 $userObj = new User();
 $errors = [];
 
-// ✅ تسجيل دخول تلقائي باستخدام التوكن
 if ($userObj->autoLogin()) {
     header("Location: index.php");
     exit();
 }
 
-// ✅ التحقق من المدخلات في PHP
+
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $email    = trim($_POST["email"]);
     $password = trim($_POST["password"]);
@@ -30,13 +29,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 
     if (empty($errors)) {
-        // ✅ تمرير خيار "Remember Me" إلى login()
         $result = $userObj->login($email, $password, $remember);
 
-        if ($result === true) {
-            header("Location: index.php");
+        if ($result) {
+            if ($_SESSION['role_id'] === 1) {
+                header("Location: views/dash.php");
+            } else {
+                header("Location: index.php");
+            }
             exit();
-        } else {
+        } 
+        else {
             $errors['general'] = $result;
         }
     }

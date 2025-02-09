@@ -1,10 +1,11 @@
 document.addEventListener("DOMContentLoaded", function () {
     updateCartCount();
-    displayCartItems(); // عرض المنتجات المخزنة عند تحميل الصفحة
+    displayCartItems(); // Display products in the cart when the page loads
 
+    // Add event listeners to the "add to cart" buttons
     document.querySelectorAll(".add-to-cart").forEach(button => {
         button.addEventListener("click", function (event) {
-            event.preventDefault(); // منع إعادة تحميل الصفحة
+            event.preventDefault(); // Prevent page reload
 
             let productId = this.getAttribute("data-id");
             let productName = this.getAttribute("data-name");
@@ -13,11 +14,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
             let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-            // التحقق مما إذا كان المنتج موجودًا بالفعل في السلة
+            // Check if product already exists in the cart
             let existingProduct = cart.find(item => item.id === productId);
-
             if (existingProduct) {
-                existingProduct.quantity += 1; // زيادة الكمية إذا كان المنتج موجودًا
+                existingProduct.quantity += 1; // Increase quantity if product is already in the cart
             } else {
                 cart.push({
                     id: productId,
@@ -28,30 +28,37 @@ document.addEventListener("DOMContentLoaded", function () {
                 });
             }
 
+            // Save updated cart to localStorage
             localStorage.setItem("cart", JSON.stringify(cart));
 
             updateCartCount();
-            displayCartItems(); // تحديث عرض السلة
+            displayCartItems(); // Update cart display
+            calculateTotal(); // Update total amount
         });
     });
+
+    // Call calculateTotal initially to display the correct total
+    calculateTotal();
 });
 
-// تحديث عدد العناصر في السلة
+// Update cart item count
 function updateCartCount() {
     let cart = JSON.parse(localStorage.getItem("cart")) || [];
     let totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
     document.getElementById("cart-count").textContent = totalQuantity;
 }
 
-// عرض المنتجات داخل صفحة السلة
+// Display cart items on the page
 function displayCartItems() {
     let cart = JSON.parse(localStorage.getItem("cart")) || [];
     let cartContainer = document.getElementById("cart-items");
 
-    if (!cartContainer) return; // إذا لم تكن الصفحة تحتوي على عنصر عرض السلة، لا تفعل شيئًا
+    if (!cartContainer) return; // If there's no cart container, do nothing
 
-    cartContainer.innerHTML = ""; // مسح المحتويات القديمة قبل إعادة العرض
+    // Clear previous content
+    cartContainer.innerHTML = "";
 
+    // Loop through each item and display it
     cart.forEach(item => {
         let itemHTML = `
             <div class="cart-item d-flex justify-content-between align-items-center border-bottom py-2">
@@ -65,22 +72,40 @@ function displayCartItems() {
         cartContainer.innerHTML += itemHTML;
     });
 
+    // Attach remove listeners to buttons
     attachRemoveListeners();
 }
 
-// حذف منتج من السلة
+// Attach remove product listeners
 function attachRemoveListeners() {
     document.querySelectorAll(".remove-from-cart").forEach(button => {
         button.addEventListener("click", function () {
             let productId = this.getAttribute("data-id");
             let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-            cart = cart.filter(item => item.id !== productId); // إزالة المنتج
+            // Remove the product
+            cart = cart.filter(item => item.id !== productId);
 
+            // Save updated cart to localStorage
             localStorage.setItem("cart", JSON.stringify(cart));
 
             updateCartCount();
-            displayCartItems();
+            displayCartItems(); // Update cart display
+            calculateTotal(); // Update total amount
         });
     });
+}
+
+// Calculate total amount of products in the cart
+function calculateTotal() {
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+    let totalAmount = 0;
+
+    // Sum the total price
+    cart.forEach(item => {
+        totalAmount += item.price * item.quantity;
+    });
+
+    // Update total amount in the page
+    document.getElementById("total-amount").textContent = "$" + totalAmount.toFixed(2);
 }

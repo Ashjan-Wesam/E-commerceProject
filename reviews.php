@@ -1,25 +1,42 @@
 <?php
+require 'config/Database.php';
+include_once 'config/Database.php';  
+include_once 'config/config.php';
+include_once 'classes/User.php';      
+include_once 'Product.php';
+include_once 'category.php';
 session_start();
 
-require_once 'config/config.php';
-require_once 'classes/User.php';
+if (!isset($_SESSION['cart'])) {
+    $_SESSION['cart'] = array();
+}
 
-$db = new Database();
-$conn = $db->conn;  
+
+function addToCart($productId) { 
+    $_SESSION['cart'][$productId] = ($_SESSION['cart'][$productId] ?? 0) + 1;
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_to_cart'])) {
+    $productId = $_POST['product_id'];
+    addToCart($productId);
+}
+
+
+$cartCount = array_sum($_SESSION['cart']);
+
+
+$db = new BDatabase();
+$conn = $db->getConnection(); 
 
 $userLoggedIn = false;
 $userName = "Guest";
 $userEmail = "";
 $userAddress = "";
 
-
 if (isset($_SESSION['user_id'])) {
     $userLoggedIn = true;
 
-   
     $userObj = new User();
-    
-    
     $userData = $userObj->getUserById($_SESSION['user_id']);
 
     if ($userData) {
@@ -28,50 +45,100 @@ if (isset($_SESSION['user_id'])) {
         $userAddress = $userData['address'];
     }
 }
-if (!isset($_SESSION["cart"])) {
-    $_SESSION["cart"] = [];
-}
 
-$total = 0;
+class Review {
+    public $conn;
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    if (isset($_POST["update_quantity"])) {
-        $key = $_POST["product_key"];
-        if ($_POST["update_quantity"] == "increase") {
-            $_SESSION["cart"][$key]["quantity"]++;
-        } elseif ($_POST["update_quantity"] == "decrease" && $_SESSION["cart"][$key]["quantity"] > 1) {
-            $_SESSION["cart"][$key]["quantity"]--;
-        }
-    } elseif (isset($_POST["remove_item"])) {
-        $key = $_POST["product_key"];
-        unset($_SESSION["cart"][$key]);
+    public function __construct() {
+        $db = new BDatabase();
+        $this->conn = $db->getConnection();
     }
-    header("Location: cart.php");
-    exit;
+
+    public function addReview($user_id, $product_id, $rating, $comment) {
+        try {
+            $stmt = $this->conn->prepare("INSERT INTO reviews (user_id, product_id, rating, comment, created_at) 
+                                          VALUES (?, ?, ?, ?, NOW())");
+            return $stmt->execute([$user_id, $product_id, $rating, $comment]);
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
+
+    public function getReviewsByProduct($product_id) {
+        $stmt = $this->conn->prepare("SELECT users.name, reviews.rating, reviews.comment, reviews.created_at 
+                                      FROM reviews 
+                                      JOIN users ON reviews.user_id = users.id 
+                                      WHERE reviews.product_id = ? ORDER BY reviews.created_at DESC");
+        $stmt->execute([$product_id]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getProductDetails($product_id) {
+        $stmt = $this->conn->prepare("SELECT name, image, description, price FROM products WHERE id = ?");
+        $stmt->execute([$product_id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
 }
+
+$review = new Review();
+
+$product_id = $_GET['product_id'] ?? null;
+
+
+if (!$product_id) {
+    echo "<p class='text-danger text-center'>Error: Product ID is missing.</p>";
+    exit();
+}
+
+
+$product = $review->getProductDetails($product_id);
+
+
+if (!$product) {
+    echo "<p class='text-danger text-center'>Error: Product not found.</p>";
+    exit();
+}
+
+
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_review'])) {
+    $user_id = 1; 
+    $rating = $_POST['rating'];
+    $comment = htmlspecialchars($_POST['review']);
+
+    if ($review->addReview($user_id, $product_id, $rating, $comment)) {
+        header("Location: product-reviews.php?id=$product_id&success=1");
+        exit();
+    } else {
+        echo "<p class='text-danger text-center'>Error submitting review.</p>";
+    }
+}
+
+
+$reviews = $review->getReviewsByProduct($product_id);
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
-    <title>Fruitables - Vegetable Website Template</title>
+    <title>Product Reviews - Fruitables</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="" name="keywords">
     <meta content="" name="description">
-     <!-- Google Web Fonts -->
-     <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Raleway:wght@600;800&display=swap" rel="stylesheet"> 
 
-        <!-- Icon Font Stylesheet -->
-        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"/>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Raleway:wght@600;800&display=swap" rel="stylesheet">
+
+    <!-- Icon Font Stylesheet -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
 
         <!-- Libraries Stylesheet -->
         <link href="assets/lib/lightbox/css/lightbox.min.css" rel="stylesheet">
         <link href="assets/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
-
 
         <!-- Customized Bootstrap Stylesheet -->
         <link href="assets/css/bootstrap.min.css" rel="stylesheet">
@@ -79,12 +146,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <!-- Template Stylesheet -->
         <link href="assets/css/style.css" rel="stylesheet">
 </head>
+
 <body>
-    <!-- Spinner Start -->
-    <div id="spinner" class="show w-100 vh-100 bg-white position-fixed translate-middle top-50 start-50 d-flex align-items-center justify-content-center">
-        <div class="spinner-grow text-primary" role="status"></div>
-    </div>
-    <!-- Spinner End -->
+
+
+
+
 
     <!-- Navbar Start -->
     <div class="container-fluid fixed-top">
@@ -119,10 +186,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <a href="shop2.php" class="nav-item nav-link">Shop</a>
                         <a href="packages.php" class="nav-item nav-link">Package</a>
             
-                        <a href="contact.html" class="nav-item nav-link">Contact</a>
+                        <a href="contact.php" class="nav-item nav-link">Contact</a>
                     </div>
                     <div class="d-flex m-3 me-0">
-                        <button class="btn-search btn border border-secondary btn-md-square rounded-circle bg-white me-4" data-bs-toggle="modal" data-bs-target="#searchModal"><i class="fas fa-search text-primary"></i></button>
                         <a href="cart.php" class="position-relative me-4 my-auto">
     <i class="fa fa-shopping-bag fa-2x"></i>
     <span id="cart-count" class="position-absolute bg-secondary rounded-circle d-flex align-items-center justify-content-center text-dark px-1"
@@ -152,59 +218,81 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
     </div>
     <!-- Navbar End -->
-         <br><br><br><br>
-    <div class="container">
-        <h1 class="mt-5">Shopping Cart</h1>
-        <table class="table mt-4">
-            <thead>
-                <tr>
-                    <th>Image</th>
-                    <th>Name</th>
-                    <th>Price</th>
-                    <th>Quantity</th>
-                    <th>Total</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (!empty($_SESSION["cart"])) : ?>
-                    <?php foreach ($_SESSION["cart"] as $key => $item) :
-                        $subtotal = $item["price"] * $item["quantity"];
-                        $total += $subtotal;
-                    ?>
-                        <tr>
-                            <td><img src="<?= htmlspecialchars($item["image"]) ?>" width="50"></td>
-                            <td><?= htmlspecialchars($item["name"]) ?></td>
-                            <td>$<?= number_format($item["price"], 2) ?></td>
-                            <td>
-                                <form method="POST" class="d-flex align-items-center" id="form">
-                                    <input type="hidden" name="product_key" value="<?= $key ?>">
-                                    <button type="submit" name="update_quantity" value="decrease" class="btn btn-sm btn-light border">-</button>
-                                    <span class="mx-2"><?= $item["quantity"] ?></span>
-                                    <button type="submit" name="update_quantity" value="increase" class="btn btn-sm btn-light border">+</button>
-                                </form>
-                            </td>
-                            <td>$<?= number_format($subtotal, 2) ?></td>
-                            <td>
-                                <form method="POST">
-                                    <input type="hidden" name="product_key" value="<?= $key ?>">
-                                    <button type="submit" name="remove_item" class="btn btn-danger btn-sm">Remove</button>
-                                </form>
-                            </td>
-                        </tr>
+
+    <div class="container mt-5">
+        
+        <div class="row justify-content-center">
+            <div class="col-md-6 text-center">
+                <img src="asstes/img/<?php echo htmlspecialchars($product['image']); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" class="img-fluid rounded mb-3" style="max-height: 300px;">
+                <h2 class="text-primary"><?php echo htmlspecialchars($product['name']); ?></h2>
+                <p class="text-muted"><?php echo htmlspecialchars($product['description']); ?></p>
+                <h4 class="text-success">$<?php echo number_format($product['price'], 2); ?></h4>
+            </div>
+        </div>
+
+        <h3 class="text-center text-primary">Product Reviews</h3>
+
+     
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <form action="product-reviews.php?id=<?php echo $product_id; ?>" method="POST" class="p-4 shadow rounded bg-light">
+                    <input type="hidden" name="product_id" value="<?php echo $product_id; ?>">
+
+                    <div class="mb-3">
+                        <label class="form-label">Your Review:</label>
+                        <textarea name="review" class="form-control" rows="4" placeholder="Write your review here..." required></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Rating:</label>
+                        <select name="rating" class="form-select" required>
+                            <option value="5">⭐️⭐️⭐️⭐️⭐️ (Excellent)</option>
+                            <option value="4">⭐️⭐️⭐️⭐️ (Good)</option>
+                            <option value="3">⭐️⭐️⭐️ (Average)</option>
+                            <option value="2">⭐️⭐️ (Poor)</option>
+                            <option value="1">⭐️ (Very Bad)</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" name="submit_review" class="btn btn-primary w-100">Submit Review</button>
+                </form>
+            </div>
+        </div>
+
+        
+        <h3 class="mt-5 text-center">User Reviews</h3>
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <?php if (!empty($reviews)) : ?>
+                    <?php foreach ($reviews as $r) : ?>
+                        <div class="p-3 shadow-sm border rounded mb-3">
+                            <p><strong><?php echo htmlspecialchars($r['name']); ?></strong> - <?php echo str_repeat("⭐️", $r['rating']); ?></p>
+                            <p><?php echo htmlspecialchars($r['comment']); ?></p>
+                            <small class="text-muted"><?php echo $r['created_at']; ?></small>
+                        </div>
                     <?php endforeach; ?>
                 <?php else : ?>
-                    <tr>
-                        <td colspan="6" class="text-center">Your cart is empty.</td>
-                    </tr>
+                    <p class="text-center">No reviews yet. Be the first to review this product!</p>
                 <?php endif; ?>
-            </tbody>
-        </table>
-        <h3>Total: $<?= number_format($total, 2) ?></h3>
-        <a href="checkout.php" class="btn btn-success">Proceed to Checkout</a>
+            </div>
+        </div>
     </div>
 
+  
     
+
+
+   <!-- to Do Post review -->
+
+
+   <!-- End to Do Post review -->
+
+
+
+
+
+   
+
         <!-- Footer Start -->
         <div class="container-fluid bg-dark text-white-50 footer pt-5 mt-5">
             <div class="container py-5">
@@ -325,12 +413,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <!-- Template Javascript -->
     <script src="assets/js/main.js"></script>
-    <script src="assets/assets/js/cart.js"></script>
-    <script>
-    document.addEventListener("DOMContentLoaded", updateCartCount);
-    </script> 
+    <script src="assets/js/cart.js"></script>
 
-
-    
+    <script src="js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
