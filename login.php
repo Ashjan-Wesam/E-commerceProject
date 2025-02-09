@@ -5,13 +5,13 @@ require_once 'classes/User.php';
 $userObj = new User();
 $errors = [];
 
-// ✅ تسجيل دخول تلقائي باستخدام التوكن
+// ✅ تسجيل دخول تلقائي إذا كان المستخدم متذكرًا
 if ($userObj->autoLogin()) {
     header("Location: index.php");
     exit();
 }
 
-// ✅ التحقق من المدخلات في PHP
+// ✅ التحقق من المدخلات عند تقديم النموذج
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $email    = trim($_POST["email"]);
     $password = trim($_POST["password"]);
@@ -34,7 +34,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $result = $userObj->login($email, $password, $remember);
 
         if ($result === true) {
-            header("Location: index.php");
+            // ✅ توجيه المستخدم بناءً على دوره
+            if ($_SESSION['role'] === 'Admin') {
+                header("Location: admin.php");
+            } else {
+                header("Location: index.php");
+            }
             exit();
         } else {
             $errors['general'] = $result;
