@@ -32,22 +32,23 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $result = $userObj->login($email, $password, $remember);
 
         if ($result) {
-            if ($_SESSION['role_id'] === 1) {
-                header("Location: views/dash.php");
-            } 
-            elseif($_SESSION['role_id'] === 2){
-
-              header("Location: index.php");
-
-            }
-            else {
-                header("Location: register.php");
-            }
-            exit();
-        } 
-        else {
-            $errors['general'] = $result;
-        }
+          // Check if the session role_id is set
+          if (isset($_SESSION['role_id'])) {
+              // Check the role_id and redirect accordingly
+              if ($_SESSION['role_id'] == 1) {
+                  header("Location: views/dash.php");
+                  exit();  // Make sure to exit after the redirect
+              } elseif ($_SESSION['role_id'] == 2) {
+                  header("Location: index.php");
+                  exit();  // Make sure to exit after the redirect
+              }
+          }
+          
+          // If role_id is not set or invalid role_id, redirect to login
+          $_SESSION["error"] = "Invalid Email or password";
+          header("Location: login.php");
+          exit();
+      }
     }
 }
 ?>
@@ -67,9 +68,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <h2>Login to your account</h2>
     <p>Enter your email and password</p>
 
-    <?php if (!empty($errors['general'])): ?>
+    <?php if (isset($_SESSION["error"])): ?>
       <div class="error" style="color: red; margin-bottom: 10px;">
-        <?php echo $errors['general']; ?>
+        <?php echo $_SESSION["error"]; ?>
       </div>
     <?php endif; ?>
 
@@ -101,7 +102,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
       <!-- Links Section -->
       <div class="links">
-        <a href="ForgetPassword.html"><i class="fa-solid fa-key"></i> Forgot password?</a>
+        <!-- <a href="ForgetPassword.html"><i class="fa-solid fa-key"></i> Forgot password?</a> -->
         <p>Don't have an account?<a href="register.php"> Sign up</a></p>
       </div>
     </form>

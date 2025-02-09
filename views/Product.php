@@ -78,6 +78,11 @@ class Product {
 }
 
 session_start();
+
+if(!isset($_SESSION['user_id'])) {
+    header("Location: ../forbidden.php");
+    exit();
+}
 $productObj = new Product();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -276,7 +281,7 @@ $products = $productObj->getProducts();
             <th>Name</th>
             <th>Description</th>
             <th>Original Price</th>
-            <th>Price After Discount</th>
+            <th>Discount percentage</th>
             <th>Discount Period</th>
             <th>Image</th>
             <th>Category</th>
@@ -288,7 +293,7 @@ $products = $productObj->getProducts();
             <td><?= $row['name'] ?></td>
             <td><?= $row['description'] ?></td>
             <td>$<?= $row['price'] ?></td>
-            <td><?= ($row['discount_price']) ? "$".$row['discount_price'] : "No Discount" ?></td>
+            <td><?= ($row['discount_price']) ? "%".$row['discount_price'] : "No Discount" ?></td>
             <td><?= ($row['discount_price']) ? "From: " . $row['discount_start'] . "<br> To: " . $row['discount_end'] : "N/A" ?></td>
             <td><img src="<?= $row['image'] ?>" alt="Product Image" style="width: 50px; height: auto;"></td>
             <td><?= $row['category'] ?></td>

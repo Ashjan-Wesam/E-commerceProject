@@ -9,12 +9,6 @@ include_once 'category.php';
 
 session_start();
 
-if(!isset($_SESSION['user_id'])) {
-    header("Location: forbidden.php");
-    exit();
-}
-
-
 if (!isset($_SESSION['cart'])) {
     $_SESSION['cart'] = array();
 }
@@ -55,9 +49,57 @@ if (isset($_SESSION['user_id'])) {
 $database = new BDatabase();
 $pdo = $database->getConnection();
 
-$total = 0;
-print_r($_SESSION['cart']);
 
+try {
+    $stmt = $pdo->query("SELECT * FROM products");
+    $products = $stmt->fetchAll();
+} catch (PDOException $e) {
+    die("Error fetching products: " . $e->getMessage());
+}
+
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $first_name = $_POST['first_name'];
+    $last_name = $_POST['last_name'];
+    $company_name = $_POST['company_name'];
+    $address = $_POST['address'];
+    $city = $_POST['city'];
+    $country = $_POST['country'];
+    $postcode = $_POST['postcode'];
+    $phone = $_POST['phone'];
+    $email = $_POST['email'];
+    $create_account = isset($_POST['create_account']) ? 1 : 0;
+    $different_address = isset($_POST['different_address']) ? 1 : 0;
+    $order_notes = $_POST['order_notes'];
+    $shipping = $_POST['shipping'];
+    $payment_method = $_POST['payment_method'];
+
+    
+    $total_amount = 0;
+    foreach ($products as $product) {
+        $total_amount += $product['price'];
+    }
+
+
+    try {
+        $stmt = $pdo->prepare("INSERT INTO orders (total_amount, status, order_date, delivery_date, user_id) VALUES (?, ?, NOW(), NULL, ?)");
+        $stmt->execute([$total_amount, 'pending', 1]); 
+
+        $order_id = $pdo->lastInsertId();
+
+    
+        foreach ($products as $product) {
+            $stmt = $pdo->prepare("INSERT INTO order_products (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$order_id, $product['id'], 1, $product['price']]);
+        }
+
+       
+        header('Location: thank_you.php');
+        exit;
+    } catch (PDOException $e) {
+        die("Error saving order: " . $e->getMessage());
+    }
+}
 ?>
 
 
@@ -88,13 +130,6 @@ print_r($_SESSION['cart']);
 
     <!-- Template Stylesheet -->
     <link href="assets/css/style.css" rel="stylesheet">
-
-    <style>
-         input[type='text'] {
-            max-width: fit-content !important;
-            border: none;
-        }
-    </style>
 </head>
 <body>
 
@@ -170,11 +205,31 @@ print_r($_SESSION['cart']);
     </div>
     <!-- Navbar End -->
 
+    <!-- Modal Search Start -->
+    <div class="modal fade" id="searchModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-fullscreen">
+            <div class="modal-content rounded-0">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Search by keyword</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body d-flex align-items-center">
+                    <div class="input-group w-75 mx-auto d-flex">
+                        <input type="search" class="form-control p-3" placeholder="keywords" aria-describedby="search-icon-1">
+                        <span id="search-icon-1" class="input-group-text p-3"><i class="fa fa-search"></i></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal Search End -->
+
     <!-- Single Page Header start -->
     <div class="container-fluid page-header py-5">
         <h1 class="text-center text-white display-6">Checkout</h1>
         <ol class="breadcrumb justify-content-center mb-0">
-            <li class="breadcrumb-item"><a href="index.php">Home</a></li>
+            <li class="breadcrumb-item"><a href="#">Home</a></li>
+            <li class="breadcrumb-item"><a href="#">Pages</a></li>
             <li class="breadcrumb-item active text-white">Checkout</li>
         </ol>
     </div>
@@ -182,11 +237,67 @@ print_r($_SESSION['cart']);
 
     <!-- Checkout Page Start -->
     <div class="container-fluid py-5">
-        <div class="container py-5 ">
+        <div class="container py-5">
             <h1 class="mb-4">Billing details</h1>
-            <form action="check.php" method="POST">
+            <form action="checkout.php" method="POST">
                 <div class="row g-5">
-                <div class="col-md-12 col-lg-6 col-xl-5">
+                    <div class="col-md-12 col-lg-6 col-xl-7">
+                        <div class="row">
+                            <div class="col-md-12 col-lg-6">
+                                <div class="form-item w-100">
+                                    <label class="form-label my-3">First Name<sup>*</sup></label>
+                                    <input type="text" class="form-control" name="first_name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-12 col-lg-6">
+                                <div class="form-item w-100">
+                                    <label class="form-label my-3">Last Name<sup>*</sup></label>
+                                    <input type="text" class="form-control" name="last_name" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-item">
+                            <label class="form-label my-3">Company Name<sup>*</sup></label>
+                            <input type="text" class="form-control" name="company_name">
+                        </div>
+                        <div class="form-item">
+                            <label class="form-label my-3">Address <sup>*</sup></label>
+                            <input type="text" class="form-control" name="address" placeholder="House Number Street Name" required>
+                        </div>
+                        <div class="form-item">
+                            <label class="form-label my-3">Town/City<sup>*</sup></label>
+                            <input type="text" class="form-control" name="city" required>
+                        </div>
+                        <div class="form-item">
+                            <label class="form-label my-3">Country<sup>*</sup></label>
+                            <input type="text" class="form-control" name="country" required>
+                        </div>
+                        <div class="form-item">
+                            <label class="form-label my-3">Postcode/Zip<sup>*</sup></label>
+                            <input type="text" class="form-control" name="postcode" required>
+                        </div>
+                        <div class="form-item">
+                            <label class="form-label my-3">Mobile<sup>*</sup></label>
+                            <input type="tel" class="form-control" name="phone" required>
+                        </div>
+                        <div class="form-item">
+                            <label class="form-label my-3">Email Address<sup>*</sup></label>
+                            <input type="email" class="form-control" name="email" required>
+                        </div>
+                        <div class="form-check my-3">
+                            <input type="checkbox" class="form-check-input" id="Account-1" name="create_account">
+                            <label class="form-check-label" for="Account-1">Create an account?</label>
+                        </div>
+                        <hr>
+                        <div class="form-check my-3">
+                            <input class="form-check-input" type="checkbox" id="Address-1" name="different_address">
+                            <label class="form-check-label" for="Address-1">Ship to a different address?</label>
+                        </div>
+                        <div class="form-item">
+                            <textarea name="order_notes" class="form-control" spellcheck="false" cols="30" rows="11" placeholder="Order Notes (Optional)"></textarea>
+                        </div>
+                    </div>
+                    <div class="col-md-12 col-lg-6 col-xl-5">
                         <div class="table-responsive">
                             <table class="table">
                                 <thead>
@@ -198,23 +309,55 @@ print_r($_SESSION['cart']);
                                         <th scope="col">Total</th>
                                     </tr>
                                 </thead>
-                                
                                 <tbody>
-                                    <?php foreach ($_SESSION["cart"] AS $key => $product): ?>
+                                    <?php foreach ($products as $product): ?>
                                     <tr>
                                         <th scope="row">
                                             <div class="d-flex align-items-center mt-2">
                                                 <img src="<?= htmlspecialchars($product['image']) ?>" class="img-fluid rounded-circle" style="width: 90px; height: 90px;" alt="">
                                             </div>
                                         </th>
-                                        
-                                        <td class="py-5"> <input type="text" name="name" id="" value="<?= htmlspecialchars($product['name'])  ?>" size="8"></td>
-                                        <td class="py-5"> <input type="text" name="price" id="" value="$<?= htmlspecialchars($product['price']) ?>"  size="8"> </td>
-                                        <td class="py-5"><input type="text" name="quantity" id="" value="<?= htmlspecialchars($_SESSION['cart'][$key]['quantity']) ?>"  size="8"> </td>
-                                        <td class="py-5"> <input type="text" name="tot" id="" value="$<?= htmlspecialchars($product['price']) * $_SESSION['cart'][$key]['quantity'];  ?>"  size="8"> </td>
-                                        <?php $total += $product['price'] * $_SESSION['cart'][$key]['quantity']; ?>
+                                        <td class="py-5"><?= htmlspecialchars($product['name']) ?></td>
+                                        <td class="py-5">$<?= htmlspecialchars($product['price']) ?></td>
+                                        <td class="py-5">1</td>
+                                        <td class="py-5">$<?= htmlspecialchars($product['price']) ?></td>
                                     </tr>
                                     <?php endforeach; ?>
+                                    <tr>
+                                        <th scope="row">
+                                        </th>
+                                        <td class="py-5"></td>
+                                        <td class="py-5"></td>
+                                        <td class="py-5">
+                                            <p class="mb-0 text-dark py-3">Subtotal</p>
+                                        </td>
+                                        <td class="py-5">
+                                            <div class="py-3 border-bottom border-top">
+                                                <p class="mb-0 text-dark">$414.00</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">
+                                        </th>
+                                        <td class="py-5">
+                                            <p class="mb-0 text-dark py-4">Shipping</p>
+                                        </td>
+                                        <td colspan="3" class="py-5">
+                                            <div class="form-check text-start">
+                                                <input type="checkbox" class="form-check-input bg-primary border-0" id="Shipping-1" name="shipping" value="free">
+                                                <label class="form-check-label" for="Shipping-1">Free Shipping</label>
+                                            </div>
+                                            <div class="form-check text-start">
+                                                <input type="checkbox" class="form-check-input bg-primary border-0" id="Shipping-2" name="shipping" value="flat">
+                                                <label class="form-check-label" for="Shipping-2">Flat rate: $15.00</label>
+                                            </div>
+                                            <div class="form-check text-start">
+                                                <input type="checkbox" class="form-check-input bg-primary border-0" id="Shipping-3" name="shipping" value="local">
+                                                <label class="form-check-label" for="Shipping-3">Local Pickup: $8.00</label>
+                                            </div>
+                                        </td>
+                                    </tr>
                                     <tr>
                                         <th scope="row">
                                         </th>
@@ -225,22 +368,34 @@ print_r($_SESSION['cart']);
                                         <td class="py-5"></td>
                                         <td class="py-5">
                                             <div class="py-3 border-bottom border-top">
-                                                
-                                                <span class="mb-0 text-dark inline-block ">$ <input type="text" name="total" id="" value="<?php echo $total?>"></span>
-                                                <?php $_SESSION["total"] = $total ?>
+                                                <p class="mb-0 text-dark">$135.00</p>
                                             </div>
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
-                        </div>
-
-                        <div class="col-md-12 col-lg-6 col-xl-5">
                         <div class="row g-4 text-center align-items-center justify-content-center border-bottom py-3">
                             <div class="col-12">
                                 <div class="form-check text-start my-3">
-                                    <input type="radio" class="form-check-input bg-primary border-0" id="Delivery-1" name="payment_method" value="cod" required >
+                                    <input type="checkbox" class="form-check-input bg-primary border-0" id="Transfer-1" name="payment_method" value="bank_transfer">
+                                    <label class="form-check-label" for="Transfer-1">Direct Bank Transfer</label>
+                                </div>
+                                <p class="text-start text-dark">Make your payment directly into our bank account. Please use your Order ID as the payment reference. Your order will not be shipped until the funds have cleared in our account.</p>
+                            </div>
+                        </div>
+                        <div class="row g-4 text-center align-items-center justify-content-center border-bottom py-3">
+                            <div class="col-12">
+                                <div class="form-check text-start my-3">
+                                    <input type="checkbox" class="form-check-input bg-primary border-0" id="Payments-1" name="payment_method" value="check">
+                                    <label class="form-check-label" for="Payments-1">Check Payments</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row g-4 text-center align-items-center justify-content-center border-bottom py-3">
+                            <div class="col-12">
+                                <div class="form-check text-start my-3">
+                                    <input type="checkbox" class="form-check-input bg-primary border-0" id="Delivery-1" name="payment_method" value="cod">
                                     <label class="form-check-label" for="Delivery-1">Cash On Delivery</label>
                                 </div>
                             </div>
@@ -248,16 +403,15 @@ print_r($_SESSION['cart']);
                         <div class="row g-4 text-center align-items-center justify-content-center border-bottom py-3">
                             <div class="col-12">
                                 <div class="form-check text-start my-3">
-                                    <input type="radio" class="form-check-input bg-primary border-0" id="Paypal-1" name="payment_method" value="paypal" required>
+                                    <input type="checkbox" class="form-check-input bg-primary border-0" id="Paypal-1" name="payment_method" value="paypal">
                                     <label class="form-check-label" for="Paypal-1">Paypal</label>
                                 </div>
                             </div>
                         </div>
                         <div class="row g-4 text-center align-items-center justify-content-center pt-4">
-                         <button type="submit" class="btn border-secondary py-3 px-4 text-uppercase w-100 text-primary" name="order">Place Order</button>
+                            <button type="submit" class="btn border-secondary py-3 px-4 text-uppercase w-100 text-primary">Place Order</button>
                         </div>
                     </div>
-
                 </div>
             </form>
         </div>
@@ -368,8 +522,6 @@ print_r($_SESSION['cart']);
 
     <!-- Template Javascript -->
     <script src="assets/js/main.js"></script>
-    <!-- <script src="assets/js/cart.js"></script> -->
-
-
+    <script src="assets/js/cart.js"></script>
 </body>
 </html>

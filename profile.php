@@ -27,6 +27,10 @@ $stmt_subscription = $pdo->prepare($query_subscription);
 $stmt_subscription->execute([$_SESSION['user_id']]);
 $subscriptions = $stmt_subscription->fetchAll();
 
+$stmt = $pdo->prepare("SELECT total_amount, status, delivery_date FROM orders WHERE user_id = ?");
+$stmt->execute([$_SESSION['user_id']]);
+$orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['update_profile'])) {
         $name = $_POST['name'];
@@ -179,6 +183,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <?php endforeach; ?>
                 <?php else: ?>
                     <li class="list-group-item">No subscription history available.</li>
+                <?php endif; ?>
+            </ul>
+                <!-- orders  -->
+            <h4 class="mt-4">Orders History</h4>
+            <ul class="list-group">
+                <?php if (!empty($orders)): ?>
+                    <?php foreach ($orders as $order): ?>
+                        <li class="list-group-item">
+                        <strong>Total amount:</strong> <?= htmlspecialchars($order['total_amount']) ?><br>
+                        <strong>Status:</strong> <?= htmlspecialchars($order['status']) ?><br>
+                            <strong>Delivery date:</strong> <?= htmlspecialchars($order['delivery_date']) ?><br>
+
+                        </li>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <li class="list-group-item">No Orders made yet.</li>
                 <?php endif; ?>
             </ul>
         </div>
