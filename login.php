@@ -34,8 +34,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         if ($result) {
             if ($_SESSION['role_id'] === 1) {
                 header("Location: views/dash.php");
-            } else {
-                header("Location: index.php");
+            } 
+            elseif($_SESSION['role_id'] === 2){
+
+              header("Location: index.php");
+
+            }
+            else {
+                header("Location: register.php");
             }
             exit();
         } 
