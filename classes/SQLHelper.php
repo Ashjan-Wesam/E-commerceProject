@@ -155,5 +155,15 @@
             $update->execute([$name, $email, $phone, $address, $id]);
             return;
           }
+
+          public function insertOrder($total, $status, $user_id) {
+            $this->conn->prepare("INSERT INTO orders 
+            (total_amount, status, order_date, delivery_date, created_at, updated_at, user_id)
+            VALUES (?, ?, NOW(), DATE_ADD(NOW(), INTERVAL 3 DAY), NOW(), NOW(), ?)");
+
+            
+        
+
+          }
     }
 ?>

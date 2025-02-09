@@ -36,11 +36,20 @@ if (isset($_SESSION['user_id'])) {
 
 $query = "SELECT products.*, categories.name AS category_name 
           FROM products 
-          INNER JOIN categories ON products.category_id = categories.id";
+          INNER JOIN categories ON products.category_id = categories.id
+          WHERE discount_price = 0 OR discount_price IS NULL";
 $stmt = $conn->prepare($query);
 $stmt->execute();
 $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+$query = "SELECT products.*, categories.name AS category_name 
+          FROM products 
+          INNER JOIN categories ON products.category_id = categories.id
+          WHERE discount_price > 0";
+
+$stmt = $conn->prepare($query);
+$stmt->execute();
+$discounts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $packagesQuery = "SELECT * FROM packages";  
 $packagesStmt = $conn->prepare($packagesQuery);
@@ -243,7 +252,7 @@ $packages = $packagesStmt->fetchAll(PDO::FETCH_ASSOC);
                                             <input type="hidden" name="name" value="<?= $product['name'] ?>">
                                             <input type="hidden" name="price" value="<?= $product['price'] ?>">
                                             <input type="hidden" name="image" value="<?= $product['image'] ?>">
-                                            <button type="submit" class="btn border border-secondary rounded-pill px-3 text-primary" name="index">
+                                            <button type="submit" class="btn border border-secondary rounded-pill px-3 text-primary" name="index" class="add-to-cart">
                                                 <i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart
                                             </button>
                                         </form>
@@ -263,7 +272,7 @@ $packages = $packagesStmt->fetchAll(PDO::FETCH_ASSOC);
 <!-- Fruits Shop End -->
 
         <!-- Banner Section Start-->
-        <div class="container-fluid banner bg-secondary my-5">
+        <!-- <div class="container-fluid banner bg-secondary my-5">
             <div class="container py-5">
                 <div class="row g-4 align-items-center">
                     <div class="col-lg-6">
@@ -288,9 +297,56 @@ $packages = $packagesStmt->fetchAll(PDO::FETCH_ASSOC);
                     </div>
                 </div>
             </div>
-        </div>
+        </div> -->
         <!-- Banner Section End -->
 
+        <!-- discount section Start -->
+        <div class="container-fluid fruite py-5">
+    <div class="container py-5">
+        <div class="text-center mb-5">
+            <h1>Discounts</h1>
+        </div>
+        <div class="tab-content">
+            <div id="tab-1" class="tab-pane fade show p-0 active">
+                <div class="row g-4 justify-content-center">
+                    <?php foreach ($discounts as $discount): 
+                        $newPrice = $discount['price'] - ($discount['price'] * (10/100) );
+                        ?>
+                        <div class="col-md-6 col-lg-4 col-xl-3 d-flex">
+                            <div class="card w-100 border border-secondary shadow-sm rounded position-relative fruite-item text-center transition-hover">
+                                <div class="fruite-img">
+                                    <img src="<?= $discount['image'] ?>" class="card-img-top img-fluid rounded-top" alt="<?= $product['name'] ?>" style="height: 200px; object-fit: cover;">
+                                </div>
+                                <div class="card-body d-flex flex-column">
+                                    <h4 class="card-title"><?= $discount['name'] ?></h4>
+                                    <p class="card-text flex-grow-1"><?= $discount['description'] ?></p>
+
+                                    <div class="d-flex justify-content-between align-items-center mt-auto">
+                                        <p class="text-dark fs-5 fw-bold mb-0">$<?= $newPrice ?> / kg</p>
+
+                                        <form method="POST" action="" class="d-inline">
+                                            <input type="hidden" name="product_id" value="<?= $discount['id'] ?>">
+                                            <input type="hidden" name="name" value="<?= $discount['name'] ?>">
+                                            <input type="hidden" name="price" value="<?= $newPrice ?>">
+                                            <input type="hidden" name="image" value="<?= $discount['image'] ?>">
+                                            <button type="submit" class="btn border border-secondary rounded-pill px-3 text-primary" name="index">
+                                                <i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart
+                                            </button>
+                                        </form>
+                                    </div>
+                                    <a href="product-detail.php?id=<?= $discount['id'] ?>" class="btn btn-link text-primary mt-2">View deatails</a>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+        <!-- discount section end -->
+        
 
         <!--Packages-->
         <div class="container-fluid py-5">
@@ -579,7 +635,7 @@ $packages = $packagesStmt->fetchAll(PDO::FETCH_ASSOC);
 
     <!-- Template Javascript -->
     <script src="assets/js/main.js"></script>
-    <script src="assets/js/cart.js"></script>
+    <!-- <script src="assets/js/cartdel.js"></script> -->
     <!-- <script>
     document.addEventListener("DOMContentLoaded", updateCartCount);
     </script>  -->

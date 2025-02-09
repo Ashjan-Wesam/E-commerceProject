@@ -2,6 +2,12 @@
 
 // require "../classes/SQLHelper.php";
 require "../classes/admin.php";
+session_start();
+
+if(!isset($_SESSION['user_id'])) {
+    header("Location: ../forbidden.php");
+    exit();
+}
 
 // $admin = new Admin($db);
 $admin = new Admin();
@@ -40,7 +46,7 @@ $dailyRevenue = $admin->getDailyRevenue();
         <li class="center no-padding">
             <div class="user-info">
                 <img src="https://www.w3schools.com/howto/img_avatar.png" alt="Admin Avatar" class="circle responsive-img" />
-                <h5>Admin</h5>
+                <h5><?php echo $_SESSION['fullname'] ?></h5>
             </div>
         </li>
         <li><a href="#dashboard"><i class="material-icons">dashboard</i>Dashboard</a></li>

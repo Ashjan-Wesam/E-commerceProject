@@ -21,6 +21,11 @@
     <?php require "../classes/admin.php";
         $admin = new Admin();
         session_start();
+
+        if(!isset($_SESSION['user_id'])) {
+            header("Location: ../forbidden.php");
+            exit();
+        }
     ?>
 
     <!-- header start  -->

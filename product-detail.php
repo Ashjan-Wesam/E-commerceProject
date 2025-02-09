@@ -1,4 +1,4 @@
-<?php
+-<?php
 include_once 'config/Database.php';
 include_once 'config/config.php';
 include_once 'classes/User.php';      
@@ -198,7 +198,7 @@ if (isset($_GET['id'])) {
             <h5 class="fw-bold mb-3">$<?php echo htmlspecialchars($product['price']); ?></h5>
             <p class="mb-4"><?php echo htmlspecialchars($product['description']); ?></p>
     
-            <form action="add_to_cart.php" method="POST">
+            <form action="" method="POST">
                 <input type="hidden" name="product_id" value="<?php echo htmlspecialchars($product['id']); ?>">
                 <input type="hidden" name="name" value="<?php echo htmlspecialchars($product['name']); ?>">
                 <input type="hidden" name="price" value="<?php echo htmlspecialchars($product['price']); ?>">
@@ -348,6 +348,73 @@ if (isset($_GET['id'])) {
     <!-- Template Javascript -->
     <script src="assets/js/main.js"></script>
     <script src="assets/js/cart.js"></script>
+
+    <?php 
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        if(!$userLoggedIn) {
+            header("Location: login.php");
+            exit();
+        }
+        $product_id = $_POST["product_id"];
+        $name = $_POST["name"];
+        $price = $_POST["price"];
+        $image = $_POST["image"];
+
+        if (!isset($_SESSION["cart"])) {
+            $_SESSION["cart"] = [];
+        }
+
+        $found = false;
+        foreach ($_SESSION["cart"] as &$item) {
+            if ($item["id"] == $product_id) {
+                $item["quantity"] += 1;
+                $found = true;
+                break;
+            }
+        }
+
+        if (!$found) {
+            $_SESSION["cart"][] = [
+                "id" => $product_id,
+                "name" => $name,
+                "price" => $price,
+                "image" => $image,
+                "quantity" => 1
+            ];
+        }
+
+        // Prevent page reload
+        echo json_encode(["status" => "success", "message" => "Product added to cart"]);
+        exit;
+    }
+
+
+    
+
+    ?>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll("form[action='']").forEach(function(form) {
+            form.addEventListener("submit", function(event) {
+                event.preventDefault();
+                var formData = new FormData(form);
+                fetch("", {
+                    method: "POST",
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        updateCartCount();
+                        alert(data.message);
+                    }
+                });
+            });
+        });
+    });
+    </script>
+
+
     </body>
 
 </html>
