@@ -138,27 +138,6 @@ if (isset($_SESSION['user_id'])) {
     </div>
     <!-- Navbar End -->
 
-
-        <!-- Modal Search Start -->
-        <div class="modal fade" id="searchModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-fullscreen">
-                <div class="modal-content rounded-0">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel">Search by keyword</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body d-flex align-items-center">
-                        <div class="input-group w-75 mx-auto d-flex">
-                            <input type="search" class="form-control p-3" placeholder="keywords" aria-describedby="search-icon-1">
-                            <span id="search-icon-1" class="input-group-text p-3"><i class="fa fa-search"></i></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- Modal Search End -->
-
-
         <!-- Single Page Header start -->
         <div class="container-fluid page-header py-5">
             <h1 class="text-center text-white display-6">Contact</h1>
@@ -189,16 +168,16 @@ if (isset($_SESSION['user_id'])) {
                                 loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                             </div>
                         </div>
-                        <div class="col-lg-7">
-                        <form id="contactForm">
-    <input type="text" id="name" class="w-100 form-control border-0 py-3 mb-4" placeholder="Your Name">
-    <input type="email" id="email" class="w-100 form-control border-0 py-3 mb-4" placeholder="Enter Your Email">
-    <textarea id="message" class="w-100 form-control border-0 mb-4" rows="5" cols="10" placeholder="Your Message"></textarea>
-    <button id="submitBtn" class="w-100 btn form-control border-secondary py-3 bg-white text-primary" type="submit">
-        Submit
-    </button>
-</form>
-                        </div>
+                    <div class="col-lg-7">
+                        <form id="contactForm" >
+                <!-- <input type="text" id="name" class="w-100 form-control border-0 py-3 mb-4" placeholder="Your Name"> -->
+                <!-- <input type="email" name="email" id="email" class="w-100 form-control border-0 py-3 mb-4" placeholder="Enter Your Email"> -->
+                <textarea name="message" id="message" class="w-100 form-control border-0 mb-4" rows="5" cols="10" placeholder="Your Message"></textarea>
+                <button id="submitBtn" class="w-100 btn form-control border-secondary py-3 bg-white text-primary" type="submit">
+                    Submit
+                </button>
+            </form>
+        </div>
                         <div class="col-lg-5">
     <div class="d-flex p-4 rounded mb-4 bg-white">
         <i class="fas fa-map-marker-alt fa-2x text-primary me-4"></i>
@@ -339,11 +318,8 @@ $(document).ready(function() {
     $("#contactForm").submit(function(e) {
         e.preventDefault(); // منع إعادة تحميل الصفحة
 
-        var name = $("#name").val().trim();
-        var email = $("#email").val().trim();
         var message = $("#message").val().trim();
-
-        if (name === "" || email === "" || message === "") {
+        if (message === "") {
             Swal.fire("Error", "Please fill in all fields!", "error");
             return;
         }
@@ -351,7 +327,7 @@ $(document).ready(function() {
         $.ajax({
             type: "POST",
             url: "contact_process.php",
-            data: { name: name, email: email, message: message },
+            data: { message: message },
             dataType: "json",
             success: function(response) {
                 if (response.status === "success") {
@@ -371,7 +347,7 @@ $(document).ready(function() {
 
     <!-- Template Javascript -->
     <script src="assets/js/main.js"></script>
-    <script src="assets/js/cart.js"></script>
+    <!-- <script src="assets/js/cart.js"></script> -->
     </body>
 
 </html>

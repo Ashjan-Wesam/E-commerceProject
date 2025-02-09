@@ -1,0 +1,85 @@
+
+/* logo */
+.logo img {
+    max-height: 12vh;
+    margin-right: 6px;
+  }
+
+.logo > a {
+    font-size: 4vh;
+    color: black;
+}
+
+/* profile */
+
+.profile > img {
+    max-height: 6vh;
+}
+
+/* sidebar */
+
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: #343a40;
+    padding: 2vh 5vh;
+    transition: 0.3s;
+    color: white;
+    gap: 3vh;
+}
+
+.sidebar a {
+    width: 100%;
+}
+
+.sidebar a:hover {
+    background: #495057;
+    border-radius: 5px;
+
+}
+
+/* tables */
+
+.res-table {
+    margin: 5vh 0;
+    border-collapse: collapse;
+    border: 1px solid black !important;
+    width: 100%;
+}
+
+
+th, td {
+    border: 1px solid black; /* Adds borders to each cell */
+    padding: 8px; /* Adds some spacing inside the cells */
+    text-align: left;
+}
+
+.operation.update {
+    background-color: rgb(15, 184, 15);
+}
+
+.operation.delete {
+    background-color: rgb(238, 93, 93);
+}
+.operation {
+    text-decoration: none;
+    color: white;
+    font-weight: bolder;
+    padding: 0.5vh 1vh;
+}
+
+.review-search > button {
+    display: inline;
+}
+
+.main {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+
+
+

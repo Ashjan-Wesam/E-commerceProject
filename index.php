@@ -1,11 +1,16 @@
 <?php
 session_start();
+header("Cache-Control: no-cache, no-store, must-revalidate");
+header("Pragma: no-cache");
+header("Expires: 0");
+echo "asdasdasdasd";
+if(!isset($_SESSION['user_id'])) echo "ddddddddddddddd";
+echo "asdasdasdasd";
 require_once 'config/config.php';
 require_once 'classes/User.php';
 
 $db = new Database();
 $conn = $db->conn;  
-
 $userLoggedIn = false;
 $userName = "Guest";
 $userEmail = "";
@@ -232,12 +237,18 @@ $packages = $packagesStmt->fetchAll(PDO::FETCH_ASSOC);
 
                                     <div class="d-flex justify-content-between align-items-center mt-auto">
                                         <p class="text-dark fs-5 fw-bold mb-0">$<?= $product['price'] ?> / kg</p>
-                                        <a role="button" class="btn border border-secondary rounded-pill px-3 text-primary add-to-cart"
-                                           data-id="<?= $product['id'] ?>" data-name="<?= $product['name'] ?>" data-price="<?= $product['price'] ?>" data-image="<?= $product['image'] ?>">
-                                            <i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart
-                                        </a>
+
+                                        <form method="POST" action="" class="d-inline">
+                                            <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
+                                            <input type="hidden" name="name" value="<?= $product['name'] ?>">
+                                            <input type="hidden" name="price" value="<?= $product['price'] ?>">
+                                            <input type="hidden" name="image" value="<?= $product['image'] ?>">
+                                            <button type="submit" class="btn border border-secondary rounded-pill px-3 text-primary" name="index">
+                                                <i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart
+                                            </button>
+                                        </form>
                                     </div>
-                                    <a href="reviews.php?product_id=<?= $product['id'] ?>" class="btn btn-link text-primary mt-2">View Reviews</a>
+                                    <a href="product-detail.php?id=<?= $product['id'] ?>" class="btn btn-link text-primary mt-2">View deatails</a>
                                 </div>
                             </div>
                         </div>
@@ -247,25 +258,9 @@ $packages = $packagesStmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
 </div>
+
+
 <!-- Fruits Shop End -->
-
-
-
-
-
-
-
-
-    
-
-
-        <!--  -->
-
-
-        <!--  -->
-
-
-
 
         <!-- Banner Section Start-->
         <div class="container-fluid banner bg-secondary my-5">
@@ -463,12 +458,7 @@ $packages = $packagesStmt->fetchAll(PDO::FETCH_ASSOC);
             </div>
         </div>
         <!-- Tastimonial End -->
-
-
-
-
-
-
+=
         <!-- Footer Start -->
         <div class="container-fluid bg-dark text-white-50 footer pt-5 mt-5">
             <div class="container py-5">
@@ -590,10 +580,75 @@ $packages = $packagesStmt->fetchAll(PDO::FETCH_ASSOC);
     <!-- Template Javascript -->
     <script src="assets/js/main.js"></script>
     <script src="assets/js/cart.js"></script>
-    <script>
+    <!-- <script>
     document.addEventListener("DOMContentLoaded", updateCartCount);
-    </script> 
+    </script>  -->
     
+    <?php 
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        if(!$userLoggedIn) {
+            header("Location: login.php");
+            exit();
+        }
+        $product_id = $_POST["product_id"];
+        $name = $_POST["name"];
+        $price = $_POST["price"];
+        $image = $_POST["image"];
+
+        if (!isset($_SESSION["cart"])) {
+            $_SESSION["cart"] = [];
+        }
+
+        $found = false;
+        foreach ($_SESSION["cart"] as &$item) {
+            if ($item["id"] == $product_id) {
+                $item["quantity"] += 1;
+                $found = true;
+                break;
+            }
+        }
+
+        if (!$found) {
+            $_SESSION["cart"][] = [
+                "id" => $product_id,
+                "name" => $name,
+                "price" => $price,
+                "image" => $image,
+                "quantity" => 1
+            ];
+        }
+
+        // Prevent page reload
+        echo json_encode(["status" => "success", "message" => "Product added to cart"]);
+        exit;
+    }
+
+
+    
+
+    ?>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll("form[action='']").forEach(function(form) {
+            form.addEventListener("submit", function(event) {
+                event.preventDefault();
+                var formData = new FormData(form);
+                fetch("", {
+                    method: "POST",
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        updateCartCount();
+                        alert(data.message);
+                    }
+                });
+            });
+        });
+    });
+    </script>
+
 </body>
 
 </html>

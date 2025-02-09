@@ -47,11 +47,13 @@ $category = new Category($conn);
 
 $category_stmt = $category->getCategories();
 
+// استقبال بيانات البحث مع تأمين المدخلات
 $search_query = isset($_GET['search']) ? trim($_GET['search']) : '';
 $category_id = isset($_GET['category_id']) ? $_GET['category_id'] : '';
 $max_price = isset($_GET['max_price']) ? $_GET['max_price'] : 100;
 $sort_order = isset($_GET['sort_order']) ? $_GET['sort_order'] : 'asc';
 
+// تنفيذ الفلترة
 $stmt = $product->readFiltered($category_id, 0, $max_price, $search_query, $sort_order);
 ?>
 

@@ -1,75 +1,54 @@
 <?php
 session_start();
 
-include_once 'config/Database.php';  
-include_once 'config/config.php';
-include_once 'classes/User.php';      
-include_once 'Product.php'; // تم تعديل المسار
-include_once 'category.php'; // تم تعديل المسار
+require_once 'config/config.php';
+require_once 'classes/User.php';
 
-// التحقق من سلة التسوق
-$_SESSION['cart'] = $_SESSION['cart'] ?? [];
-
-function addToCart($productId) {
-    if (!isset($_SESSION['cart'][$productId])) {
-        $_SESSION['cart'][$productId] = 1;
-    } else {
-        $_SESSION['cart'][$productId]++;
-    }
-}
-
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_to_cart'])) {
-    $productId = filter_input(INPUT_POST, 'product_id', FILTER_VALIDATE_INT);
-    if ($productId) {
-        addToCart($productId);
-    } else {
-        echo "Invalid product ID.";
-    }
-}
-
-// حساب عدد العناصر في السلة
-$cartCount = !empty($_SESSION['cart']) ? array_sum($_SESSION['cart']) : 0;
-
-// إنشاء الاتصال بقاعدة البيانات
-$db = new BDatabase();
-$conn = $db->getConnection(); 
+$db = new Database();
+$conn = $db->conn;  
 
 $userLoggedIn = false;
 $userName = "Guest";
 $userEmail = "";
 $userAddress = "";
 
+
 if (isset($_SESSION['user_id'])) {
-    $userId = filter_var($_SESSION['user_id'], FILTER_VALIDATE_INT);
-    if ($userId) {
-        $userLoggedIn = true;
-        session_regenerate_id(true); // تأمين الجلسة
+    $userLoggedIn = true;
 
-        // إنشاء كائن المستخدم
-        $userObj = new User($conn);
-        $userData = $userObj->getUserById($userId);
+   
+    $userObj = new User();
+    
+    
+    $userData = $userObj->getUserById($_SESSION['user_id']);
 
-        if ($userData) {
-            $userName = htmlspecialchars($userData['name']);
-            $userEmail = htmlspecialchars($userData['email']);
-            $userAddress = htmlspecialchars($userData['address']);
-        }
+    if ($userData) {
+        $userName = $userData['name'];
+        $userEmail = $userData['email'];
+        $userAddress = $userData['address'];
     }
 }
-
-$cart = isset($_COOKIE['cart']) ? json_decode($_COOKIE['cart'], true) : [];
-
-$cartCount = array_reduce($cart, function($total, $item) {
-    return $total + $item['quantity'];
-}, 0);
-
-$total_amount = 0;
-foreach ($cart as $productId => $item) {
-    $total_amount += $item['price'] * $item['quantity'];
+if (!isset($_SESSION["cart"])) {
+    $_SESSION["cart"] = [];
 }
 
-// عرض المجموع الكلي
-echo "Total Amount: $" . number_format($total_amount, 2);
+$total = 0;
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    if (isset($_POST["update_quantity"])) {
+        $key = $_POST["product_key"];
+        if ($_POST["update_quantity"] == "increase") {
+            $_SESSION["cart"][$key]["quantity"]++;
+        } elseif ($_POST["update_quantity"] == "decrease" && $_SESSION["cart"][$key]["quantity"] > 1) {
+            $_SESSION["cart"][$key]["quantity"]--;
+        }
+    } elseif (isset($_POST["remove_item"])) {
+        $key = $_POST["product_key"];
+        unset($_SESSION["cart"][$key]);
+    }
+    header("Location: cart.php");
+    exit;
+}
 ?>
 
 <!DOCTYPE html>
@@ -173,130 +152,61 @@ echo "Total Amount: $" . number_format($total_amount, 2);
         </div>
     </div>
     <!-- Navbar End -->
-
-
-    <!-- Single Page Header Start -->
-    <div class="container-fluid page-header py-5">
-        <h1 class="text-center text-white display-6">Cart</h1>
-        <ol class="breadcrumb justify-content-center mb-0">
-            <li class="breadcrumb-item"><a href="#">Home</a></li>
-            <li class="breadcrumb-item"><a href="#">Pages</a></li>
-            <li class="breadcrumb-item active text-white">Cart</li>
-        </ol>
-    </div>
-    <!-- Single Page Header End -->
-
-        
-<!-- Cart Page Start -->
-<div class="container-fluid py-5">
-    <div class="container py-5">
-        <div class="table-responsive">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th scope="col">Products</th>
-                        <th scope="col">Name</th>
-                        <th scope="col">Price</th>
-                        <th scope="col">Quantity</th>
-                        <th scope="col">Total</th>
-                        <th scope="col">Handle</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (!empty($cart)) : ?>
-                        <?php foreach ($cart as $productId => $quantity) :
-                            $product = $productObj->getProductById($productId);
-                            if (!$product) continue;
-
-                            $productTotal = $product['price'] * $quantity;
-                            $total_amount += $productTotal;
-                        ?>
-                            <tr>
-                                <th scope="row">
-                                    <div class="d-flex align-items-center">
-                                        <img src="<?= htmlspecialchars($product['image']) ?>" class="img-fluid me-5 rounded-circle" style="width: 80px; height: 80px;" alt="">
-                                    </div>
-                                </th>
-                                <td>
-                                    <p class="mb-0 mt-4"><?= htmlspecialchars($product['name']) ?></p>
-                                </td>
-                                <td>
-                                    <p class="mb-0 mt-4">$<?= number_format($product['price'], 2) ?></p>
-                                </td>
-                                <td>
-                                    <div class="input-group quantity mt-4" style="width: 100px;">
-                                        <form method="POST" action="update_cart.php">
-                                            <input type="hidden" name="product_id" value="<?= $productId ?>">
-                                            <input type="hidden" name="action" value="decrease">
-                                            <button type="submit" class="btn btn-sm btn-minus rounded-circle bg-light border">
-                                                <i class="fa fa-minus"></i>
-                                            </button>
-                                        </form>
-
-                                        <input type="text" class="form-control form-control-sm text-center border-0" value="<?= $quantity ?>" readonly>
-
-                                        <form method="POST" action="update_cart.php">
-                                            <input type="hidden" name="product_id" value="<?= $productId ?>">
-                                            <input type="hidden" name="action" value="increase">
-                                            <button type="submit" class="btn btn-sm btn-plus rounded-circle bg-light border">
-                                                <i class="fa fa-plus"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                                <td>
-                                    <p class="mb-0 mt-4">$<?= number_format($productTotal, 2) ?></p>
-                                </td>
-                                <td>
-                                    <form method="POST" action="update_cart.php">
-                                        <input type="hidden" name="product_id" value="<?= $productId ?>">
-                                        <input type="hidden" name="action" value="remove">
-                                        <button type="submit" class="btn btn-md rounded-circle bg-light border mt-4">
-                                            <i class="fa fa-times text-danger"></i>
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php else : ?>
+         <br><br><br><br>
+    <div class="container">
+        <h1 class="mt-5">Shopping Cart</h1>
+        <table class="table mt-4">
+            <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Total</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (!empty($_SESSION["cart"])) : ?>
+                    <?php foreach ($_SESSION["cart"] as $key => $item) :
+                        $subtotal = $item["price"] * $item["quantity"];
+                        $total += $subtotal;
+                    ?>
                         <tr>
-                            <td colspan="6" class="text-center">Your cart is empty</td>
+                            <td><img src="<?= htmlspecialchars($item["image"]) ?>" width="50"></td>
+                            <td><?= htmlspecialchars($item["name"]) ?></td>
+                            <td>$<?= number_format($item["price"], 2) ?></td>
+                            <td>
+                                <form method="POST" class="d-flex align-items-center" id="form">
+                                    <input type="hidden" name="product_key" value="<?= $key ?>">
+                                    <button type="submit" name="update_quantity" value="decrease" class="btn btn-sm btn-light border">-</button>
+                                    <span class="mx-2"><?= $item["quantity"] ?></span>
+                                    <button type="submit" name="update_quantity" value="increase" class="btn btn-sm btn-light border">+</button>
+                                </form>
+                            </td>
+                            <td>$<?= number_format($subtotal, 2) ?></td>
+                            <td>
+                                <form method="POST">
+                                    <input type="hidden" name="product_key" value="<?= $key ?>">
+                                    <button type="submit" name="remove_item" class="btn btn-danger btn-sm">Remove</button>
+                                </form>
+                            </td>
                         </tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
-        
-        <div class="row g-4 justify-content-end">
-            <div class="col-sm-8 col-md-7 col-lg-6 col-xl-4">
-                <div class="bg-light rounded">
-                    <div class="p-4">
-                        <h1 class="display-6 mb-4">Cart <span class="fw-normal">Total</span></h1>
-                        <div class="d-flex justify-content-between mb-4">
-                            <h5 class="mb-0 me-4">Subtotal:</h5>
-                            <p class="mb-0">$<?= number_format($total_amount, 2) ?></p>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <h5 class="mb-0 me-4">Shipping</h5>
-                            <p class="mb-0">$3.00</p>
-                        </div>
-                        <p class="mb-0 text-end">Shipping to your location.</p>
-                    </div>
-                    <div class="py-4 mb-4 border-top border-bottom d-flex justify-content-between">
-                        <h5 class="mb-0 ps-4 me-4">Total</h5>
-                        <p class="mb-0 pe-4">$<?= number_format($total_amount + 3, 2) ?></p>
-                    </div>
-                    <button class="btn border-secondary rounded-pill px-4 py-3 text-primary text-uppercase mb-4 ms-4" type="button">Proceed to Checkout</button>
-                </div>
-            </div>
-        </div>
+                    <?php endforeach; ?>
+                <?php else : ?>
+                    <tr>
+                        <td colspan="6" class="text-center">Your cart is empty.</td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+        <h3>Total: $<?= number_format($total, 2) ?></h3>
+        <a href="checkout.php" class="btn btn-success">Proceed to Checkout</a>
     </div>
-</div>
-<!-- Cart Page End -->
 
-
-    <!-- Footer Start -->
-    <div class="container-fluid bg-dark text-white-50 footer pt-5 mt-5">
+    
+        <!-- Footer Start -->
+        <div class="container-fluid bg-dark text-white-50 footer pt-5 mt-5">
             <div class="container py-5">
                 <div class="pb-4 mb-4" style="border-bottom: 1px solid rgba(226, 175, 24, 0.5) ;">
                     <div class="row g-4">
@@ -366,117 +276,31 @@ echo "Total Amount: $" . number_format($total_amount, 2);
                 </div>
             </div>
         </div>
-    <!-- Footer End -->
+        <!-- Footer End -->
+
+        <!-- Copyright Start -->
+        <div class="container-fluid copyright bg-dark py-4">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+                        <span class="text-light"><a href="#"><i class="fas fa-copyright text-light me-2"></i>Your Site Name</a>, All right reserved.</span>
+                    </div>
+                    <div class="col-md-6 my-auto text-center text-md-end text-white">
+                        <!--/* This template is free as long as you keep the below author’s credit link/attribution link/backlink. */-->
+                        <!--/* If you'd like to use the template without the below author’s credit link/attribution link/backlink, */-->
+                        <!--/* you can purchase the Credit Removal License from "https://htmlcodex.com/credit-removal". */-->
+                        Designed By <a class="border-bottom" href="https://htmlcodex.com">HTML Codex</a> Distributed By <a class="border-bottom" href="https://themewagon.com">ThemeWagon</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Copyright End -->
 
 
-    
 
-<!-- Script -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        loadCart();
-    });
+        <!-- Back to Top -->
+        <a href="#" class="btn btn-primary border-3 border-primary rounded-circle back-to-top"><i class="fa fa-arrow-up"></i></a>
 
-    function loadCart() {
-        const cart = JSON.parse(localStorage.getItem('cart')) || [];
-        displayCartItems(cart);
-    }
-
-    function displayCartItems(cart) {
-        let cartItemsHtml = '';
-        let subtotal = 0;
-
-        if (cart.length > 0) {
-            cart.forEach(item => {
-                const total = item.price * item.quantity;
-                cartItemsHtml += `
-                    <tr data-id="${item.id}">
-                        <th scope="row">
-                            <div class="d-flex align-items-center">
-                                <img src="${item.image}" class="img-fluid me-5 rounded-circle" style="width: 80px; height: 80px;" alt="${item.name}">
-                            </div>
-                        </th>
-                        <td><p class="mb-0 mt-4">${item.name}</p></td>
-                        <td><p class="mb-0 mt-4">$${item.price}</p></td>
-                        <td>
-                            <div class="input-group quantity mt-4" style="width: 100px;">
-                                <div class="input-group-btn">
-                                    <button class="btn btn-sm btn-minus rounded-circle bg-light border decrease-quantity">
-                                        <i class="fa fa-minus"></i>
-                                    </button>
-                                </div>
-                                <input type="text" class="form-control form-control-sm text-center border-0" value="${item.quantity}">
-                                <div class="input-group-btn">
-                                    <button class="btn btn-sm btn-plus rounded-circle bg-light border increase-quantity">
-                                        <i class="fa fa-plus"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </td>
-                        <td><p class="mb-0 mt-4">$${total}</p></td>
-                        <td>
-                            <button class="btn btn-md rounded-circle bg-light border mt-4 remove-item">
-                                <i class="fa fa-times text-danger"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-                subtotal += total;
-            });
-        } else {
-            cartItemsHtml = `<tr><td colspan="6"><p>Your cart is empty</p></td></tr>`;
-        }
-
-        document.getElementById('cart-items').innerHTML = cartItemsHtml;
-        updateTotal(subtotal);
-    }
-
-    function updateTotal(subtotal) {
-        const shippingCost = 3; // Fixed shipping cost
-        const total = subtotal + shippingCost;
-        document.getElementById('subtotal').innerText = `$${subtotal.toFixed(2)}`;
-        document.getElementById('total').innerText = `$${total.toFixed(2)}`;
-    }
-
-    $(document).on('click', '.remove-item', function() {
-        const productId = $(this).closest('tr').data('id');
-        let cart = JSON.parse(localStorage.getItem('cart')) || [];
-        cart = cart.filter(item => item.id != productId);
-        localStorage.setItem('cart', JSON.stringify(cart));
-        loadCart();
-    });
-
-    $(document).on('click', '.decrease-quantity', function() {
-        const productId = $(this).closest('tr').data('id');
-        let cart = JSON.parse(localStorage.getItem('cart')) || [];
-        cart = cart.map(item => {
-            if (item.id == productId && item.quantity > 1) {
-                item.quantity -= 1;
-            }
-            return item;
-        });
-        localStorage.setItem('cart', JSON.stringify(cart));
-        loadCart();
-    });
-
-    $(document).on('click', '.increase-quantity', function() {
-        const productId = $(this).closest('tr').data('id');
-        let cart = JSON.parse(localStorage.getItem('cart')) || [];
-        cart = cart.map(item => {
-            if (item.id == productId) {
-                item.quantity += 1;
-            }
-            return item;
-        });
-        localStorage.setItem('cart', JSON.stringify(cart));
-        loadCart();
-    });
-
-    $('#proceed-checkout').click(function() {
-        alert("Proceeding to checkout...");
-    });
-</script>
 
     <!-- JavaScript Libraries -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
@@ -485,10 +309,29 @@ echo "Total Amount: $" . number_format($total_amount, 2);
     <script src="assets/lib/waypoints/waypoints.min.js"></script>
     <script src="assets/lib/lightbox/js/lightbox.min.js"></script>
     <script src="assets/lib/owlcarousel/owl.carousel.min.js"></script>
+    
+
+    <!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Owl Carousel CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.theme.default.min.css">
+
+<!-- Owl Carousel JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
+
+
 
     <!-- Template Javascript -->
     <script src="assets/js/main.js"></script>
-    <script src="assets/js/cart.js"></script>
+    <script src="assets/assets/js/cart.js"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", updateCartCount);
+    </script> 
+
+
+    
 </body>
 </html>
 

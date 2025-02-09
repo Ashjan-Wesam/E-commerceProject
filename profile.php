@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if (empty($name) || empty($email) || empty($phone) || empty($address)) {
             $message = 'Please fill in all the fields.';
             $message_type = 'error';
-        } elseif (!preg_match('/^9627[89]\d{7}$/', $phone)) {
+        } elseif (!preg_match('/^07[89]\d{7}$/', $phone)) {
             $message = 'Please enter a valid Jordanian phone number (starts with 078, 077, 079).';
             $message_type = 'error';
         } else {
@@ -63,6 +63,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $message_type = $message === 'Password changed successfully' ? 'success' : 'error';
         }
     }
+
+    header("Location: profile.php");
+    exit();
 }
 
 // $purchases = $userObj->getPurchaseHistory($_SESSION['user_id']);
