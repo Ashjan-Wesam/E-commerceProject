@@ -138,6 +138,7 @@ if (isset($_SESSION['user_id'])) {
     </div>
     <!-- Navbar End -->
 
+<<<<<<< HEAD
 
         <!-- Modal Search Start -->
         <div class="modal fade" id="searchModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -159,6 +160,8 @@ if (isset($_SESSION['user_id'])) {
         <!-- Modal Search End -->
 
 
+=======
+>>>>>>> de50e4f1d107fd7e7d9137b413efa3fccf8eb121
         <!-- Single Page Header start -->
         <div class="container-fluid page-header py-5">
             <h1 class="text-center text-white display-6">Contact</h1>
@@ -189,6 +192,7 @@ if (isset($_SESSION['user_id'])) {
                                 loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                             </div>
                         </div>
+<<<<<<< HEAD
                         <div class="col-lg-7">
                         <form id="contactForm">
     <input type="text" id="name" class="w-100 form-control border-0 py-3 mb-4" placeholder="Your Name">
@@ -199,6 +203,18 @@ if (isset($_SESSION['user_id'])) {
     </button>
 </form>
                         </div>
+=======
+                    <div class="col-lg-7">
+                        <form id="contactForm" >
+                <!-- <input type="text" id="name" class="w-100 form-control border-0 py-3 mb-4" placeholder="Your Name"> -->
+                <!-- <input type="email" name="email" id="email" class="w-100 form-control border-0 py-3 mb-4" placeholder="Enter Your Email"> -->
+                <textarea name="message" id="message" class="w-100 form-control border-0 mb-4" rows="5" cols="10" placeholder="Your Message"></textarea>
+                <button id="submitBtn" class="w-100 btn form-control border-secondary py-3 bg-white text-primary" type="submit">
+                    Submit
+                </button>
+            </form>
+        </div>
+>>>>>>> de50e4f1d107fd7e7d9137b413efa3fccf8eb121
                         <div class="col-lg-5">
     <div class="d-flex p-4 rounded mb-4 bg-white">
         <i class="fas fa-map-marker-alt fa-2x text-primary me-4"></i>
@@ -339,11 +355,16 @@ $(document).ready(function() {
     $("#contactForm").submit(function(e) {
         e.preventDefault(); // منع إعادة تحميل الصفحة
 
+<<<<<<< HEAD
         var name = $("#name").val().trim();
         var email = $("#email").val().trim();
         var message = $("#message").val().trim();
 
         if (name === "" || email === "" || message === "") {
+=======
+        var message = $("#message").val().trim();
+        if (message === "") {
+>>>>>>> de50e4f1d107fd7e7d9137b413efa3fccf8eb121
             Swal.fire("Error", "Please fill in all fields!", "error");
             return;
         }
@@ -351,7 +372,11 @@ $(document).ready(function() {
         $.ajax({
             type: "POST",
             url: "contact_process.php",
+<<<<<<< HEAD
             data: { name: name, email: email, message: message },
+=======
+            data: { message: message },
+>>>>>>> de50e4f1d107fd7e7d9137b413efa3fccf8eb121
             dataType: "json",
             success: function(response) {
                 if (response.status === "success") {
@@ -371,7 +396,11 @@ $(document).ready(function() {
 
     <!-- Template Javascript -->
     <script src="assets/js/main.js"></script>
+<<<<<<< HEAD
     <script src="assets/js/cart.js"></script>
+=======
+    <!-- <script src="assets/js/cart.js"></script> -->
+>>>>>>> de50e4f1d107fd7e7d9137b413efa3fccf8eb121
     </body>
 
 </html>

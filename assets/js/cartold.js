@@ -1,11 +1,10 @@
 document.addEventListener("DOMContentLoaded", function () {
     updateCartCount();
-    displayCartItems(); // Display products in the cart when the page loads
+    displayCartItems(); // عرض المنتجات المخزنة عند تحميل الصفحة
 
-    // Add event listeners to the "add to cart" buttons
     document.querySelectorAll(".add-to-cart").forEach(button => {
         button.addEventListener("click", function (event) {
-            event.preventDefault(); // Prevent page reload
+            event.preventDefault(); // منع إعادة تحميل الصفحة
 
             let productId = this.getAttribute("data-id");
             let productName = this.getAttribute("data-name");
@@ -14,10 +13,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
             let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-            // Check if product already exists in the cart
+            // التحقق مما إذا كان المنتج موجودًا بالفعل في السلة
             let existingProduct = cart.find(item => item.id === productId);
             if (existingProduct) {
-                existingProduct.quantity += 1; // Increase quantity if product is already in the cart
+                existingProduct.quantity += 1; // زيادة الكمية إذا كان المنتج موجودًا
             } else {
                 cart.push({
                     id: productId,
@@ -28,37 +27,30 @@ document.addEventListener("DOMContentLoaded", function () {
                 });
             }
 
-            // Save updated cart to localStorage
             localStorage.setItem("cart", JSON.stringify(cart));
 
             updateCartCount();
-            displayCartItems(); // Update cart display
-            calculateTotal(); // Update total amount
+            displayCartItems(); // تحديث عرض السلة
         });
     });
-
-    // Call calculateTotal initially to display the correct total
-    calculateTotal();
 });
 
-// Update cart item count
+// تحديث عدد العناصر في السلة
 function updateCartCount() {
     let cart = JSON.parse(localStorage.getItem("cart")) || [];
     let totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
     document.getElementById("cart-count").textContent = totalQuantity;
 }
 
-// Display cart items on the page
+// عرض المنتجات داخل صفحة السلة
 function displayCartItems() {
     let cart = JSON.parse(localStorage.getItem("cart")) || [];
     let cartContainer = document.getElementById("cart-items");
 
-    if (!cartContainer) return; // If there's no cart container, do nothing
+    if (!cartContainer) return; // إذا لم تكن الصفحة تحتوي على عنصر عرض السلة، لا تفعل شيئًا
 
-    // Clear previous content
-    cartContainer.innerHTML = "";
+    cartContainer.innerHTML = ""; // مسح المحتويات القديمة قبل إعادة العرض
 
-    // Loop through each item and display it
     cart.forEach(item => {
         let itemHTML = `
             <div class="cart-item d-flex justify-content-between align-items-center border-bottom py-2">
@@ -72,31 +64,26 @@ function displayCartItems() {
         cartContainer.innerHTML += itemHTML;
     });
 
-    // Attach remove listeners to buttons
     attachRemoveListeners();
 }
 
-// Attach remove product listeners
+// حذف منتج من السلة
 function attachRemoveListeners() {
     document.querySelectorAll(".remove-from-cart").forEach(button => {
         button.addEventListener("click", function () {
             let productId = this.getAttribute("data-id");
             let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-            // Remove the product
-            cart = cart.filter(item => item.id !== productId);
+            cart = cart.filter(item => item.id !== productId); // إزالة المنتج
 
-            // Save updated cart to localStorage
             localStorage.setItem("cart", JSON.stringify(cart));
 
             updateCartCount();
-            displayCartItems(); // Update cart display
-            calculateTotal(); // Update total amount
+            displayCartItems();
         });
     });
 }
 
-<<<<<<< HEAD
 
 document.addEventListener("DOMContentLoaded", function () {
     updateCartCount();
@@ -187,24 +174,13 @@ function attachRemoveListeners() {
 }
 
 // حساب المجموع الكلي من السلة في localStorage
-=======
-// Calculate total amount of products in the cart
->>>>>>> de50e4f1d107fd7e7d9137b413efa3fccf8eb121
 function calculateTotal() {
     let cart = JSON.parse(localStorage.getItem("cart")) || [];
     let totalAmount = 0;
 
-<<<<<<< HEAD
-=======
-    // Sum the total price
->>>>>>> de50e4f1d107fd7e7d9137b413efa3fccf8eb121
     cart.forEach(item => {
         totalAmount += item.price * item.quantity;
     });
 
-<<<<<<< HEAD
-=======
-    // Update total amount in the page
->>>>>>> de50e4f1d107fd7e7d9137b413efa3fccf8eb121
     document.getElementById("total-amount").textContent = "$" + totalAmount.toFixed(2);
 }

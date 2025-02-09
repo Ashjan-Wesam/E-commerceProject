@@ -5,6 +5,7 @@ require 'config/Database.php';
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<<<<<<< HEAD
   <!--  Meta  -->
   <meta charset="UTF-8" />
   <title>My New Pen!</title>
@@ -103,4 +104,19 @@ ul.footer-nav li + li::before{background: #fff;}
   <script src="scripts/index.js"></script>
 </body>
 
+=======
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thank You</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container text-center py-5">
+        <h1 class="display-4">Thank You!</h1>
+        <p class="lead">Your order has been placed successfully.</p>
+        <a href="index.php" class="btn btn-primary">Continue Shopping</a>
+    </div>
+</body>
+>>>>>>> de50e4f1d107fd7e7d9137b413efa3fccf8eb121
 </html>

@@ -1,11 +1,23 @@
 <?php
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> de50e4f1d107fd7e7d9137b413efa3fccf8eb121
 include_once 'config/Database.php';  
 include_once 'config/config.php';
 include_once 'classes/User.php';      
 include_once 'Product.php';
+<<<<<<< HEAD
 include_once 'category.php';    
 
 session_start();
+=======
+include_once 'category.php';
+
+session_start();
+
+>>>>>>> de50e4f1d107fd7e7d9137b413efa3fccf8eb121
 if (!isset($_SESSION['cart'])) {
     $_SESSION['cart'] = array();
 }
@@ -18,6 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_to_cart'])) {
     $productId = $_POST['product_id'];
     addToCart($productId);
 }
+<<<<<<< HEAD
 class fff {
     private $host = 'localhost';
     private $db_name = 'e-commerce';
@@ -44,6 +57,12 @@ class fff {
 $cartCount = array_sum($_SESSION['cart']);
 
 $db = new fff();
+=======
+
+$cartCount = array_sum($_SESSION['cart']);
+
+$db = new BDatabase();
+>>>>>>> de50e4f1d107fd7e7d9137b413efa3fccf8eb121
 $conn = $db->getConnection(); 
 
 $userLoggedIn = false;
@@ -113,7 +132,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
        
+<<<<<<< HEAD
         header('Location: Thankyou.php');
+=======
+        header('Location: thank_you.php');
+>>>>>>> de50e4f1d107fd7e7d9137b413efa3fccf8eb121
         exit;
     } catch (PDOException $e) {
         die("Error saving order: " . $e->getMessage());
@@ -428,8 +451,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                         </div>
                         <div class="row g-4 text-center align-items-center justify-content-center pt-4">
+<<<<<<< HEAD
                          <button type="submit" class="btn border-secondary py-3 px-4 text-uppercase w-100 text-primary">Place Order</button>
                         
+=======
+                            <button type="submit" class="btn border-secondary py-3 px-4 text-uppercase w-100 text-primary">Place Order</button>
+>>>>>>> de50e4f1d107fd7e7d9137b413efa3fccf8eb121
                         </div>
                     </div>
                 </div>

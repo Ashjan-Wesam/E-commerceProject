@@ -1,11 +1,20 @@
 <?php
 session_start();
+header("Cache-Control: no-cache, no-store, must-revalidate");
+header("Pragma: no-cache");
+header("Expires: 0");
+echo "asdasdasdasd";
+if(!isset($_SESSION['user_id'])) echo "ddddddddddddddd";
+echo "asdasdasdasd";
 require_once 'config/config.php';
 require_once 'classes/User.php';
 
 $db = new Database();
 $conn = $db->conn;  
+<<<<<<< HEAD
 
+=======
+>>>>>>> de50e4f1d107fd7e7d9137b413efa3fccf8eb121
 $userLoggedIn = false;
 $userName = "Guest";
 $userEmail = "";
@@ -39,9 +48,13 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $packagesQuery = "SELECT * FROM packages";  
 $packagesStmt = $conn->prepare($packagesQuery);
+<<<<<<< HEAD
 
 $packagesStmt->execute();
 
+=======
+$packagesStmt->execute();
+>>>>>>> de50e4f1d107fd7e7d9137b413efa3fccf8eb121
 $packages = $packagesStmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
@@ -234,12 +247,27 @@ $packages = $packagesStmt->fetchAll(PDO::FETCH_ASSOC);
 
                                     <div class="d-flex justify-content-between align-items-center mt-auto">
                                         <p class="text-dark fs-5 fw-bold mb-0">$<?= $product['price'] ?> / kg</p>
+<<<<<<< HEAD
                                         <a role="button" class="btn border border-secondary rounded-pill px-3 text-primary add-to-cart"
                                            data-id="<?= $product['id'] ?>" data-name="<?= $product['name'] ?>" data-price="<?= $product['price'] ?>" data-image="<?= $product['image'] ?>">
                                             <i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart
                                         </a>
                                     </div>
                                     <a href="reviews.php?product_id=<?= $product['id'] ?>" class="btn btn-link text-primary mt-2">View Reviews</a>
+=======
+
+                                        <form method="POST" action="" class="d-inline">
+                                            <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
+                                            <input type="hidden" name="name" value="<?= $product['name'] ?>">
+                                            <input type="hidden" name="price" value="<?= $product['price'] ?>">
+                                            <input type="hidden" name="image" value="<?= $product['image'] ?>">
+                                            <button type="submit" class="btn border border-secondary rounded-pill px-3 text-primary" name="index">
+                                                <i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart
+                                            </button>
+                                        </form>
+                                    </div>
+                                    <a href="product-detail.php?id=<?= $product['id'] ?>" class="btn btn-link text-primary mt-2">View deatails</a>
+>>>>>>> de50e4f1d107fd7e7d9137b413efa3fccf8eb121
                                 </div>
                             </div>
                         </div>
@@ -249,6 +277,7 @@ $packages = $packagesStmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
 </div>
+<<<<<<< HEAD
 <!-- Fruits Shop End -->
 
 
@@ -269,6 +298,12 @@ $packages = $packagesStmt->fetchAll(PDO::FETCH_ASSOC);
 
 
 
+=======
+
+
+<!-- Fruits Shop End -->
+
+>>>>>>> de50e4f1d107fd7e7d9137b413efa3fccf8eb121
         <!-- Banner Section Start-->
         <div class="container-fluid banner bg-secondary my-5">
             <div class="container py-5">
@@ -465,9 +500,105 @@ $packages = $packagesStmt->fetchAll(PDO::FETCH_ASSOC);
             </div>
         </div>
         <!-- Tastimonial End -->
+<<<<<<< HEAD
+=======
+=
+        <!-- Footer Start -->
+        <div class="container-fluid bg-dark text-white-50 footer pt-5 mt-5">
+            <div class="container py-5">
+                <div class="pb-4 mb-4" style="border-bottom: 1px solid rgba(226, 175, 24, 0.5) ;">
+                    <div class="row g-4">
+                        <div class="col-lg-3">
+                            <a href="#">
+                                <h1 class="text-primary mb-0">Fruitables</h1>
+                                <p class="text-secondary mb-0">Fresh products</p>
+                            </a>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="position-relative mx-auto">
+                                <input class="form-control border-0 w-100 py-3 px-4 rounded-pill" type="number" placeholder="Your Email">
+                                <button type="submit" class="btn btn-primary border-0 border-secondary py-3 px-4 position-absolute rounded-pill text-white" style="top: 0; right: 0;">Subscribe Now</button>
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="d-flex justify-content-end pt-3">
+                                <a class="btn  btn-outline-secondary me-2 btn-md-square rounded-circle" href=""><i class="fab fa-twitter"></i></a>
+                                <a class="btn btn-outline-secondary me-2 btn-md-square rounded-circle" href=""><i class="fab fa-facebook-f"></i></a>
+                                <a class="btn btn-outline-secondary me-2 btn-md-square rounded-circle" href=""><i class="fab fa-youtube"></i></a>
+                                <a class="btn btn-outline-secondary btn-md-square rounded-circle" href=""><i class="fab fa-linkedin-in"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-5">
+                    <div class="col-lg-3 col-md-6">
+                        <div class="footer-item">
+                            <h4 class="text-light mb-3">Why People Like us!</h4>
+                            <p class="mb-4">typesetting, remaining essentially unchanged. It was 
+                                popularised in the 1960s with the like Aldus PageMaker including of Lorem Ipsum.</p>
+                            <a href="" class="btn border-secondary py-2 px-4 rounded-pill text-primary">Read More</a>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="d-flex flex-column text-start footer-item">
+                            <h4 class="text-light mb-3">Shop Info</h4>
+                            <a class="btn-link" href="">About Us</a>
+                            <a class="btn-link" href="">Contact Us</a>
+                            <a class="btn-link" href="">Privacy Policy</a>
+                            <a class="btn-link" href="">Terms & Condition</a>
+                            <a class="btn-link" href="">Return Policy</a>
+                            <a class="btn-link" href="">FAQs & Help</a>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="d-flex flex-column text-start footer-item">
+                            <h4 class="text-light mb-3">Account</h4>
+                            <a class="btn-link" href="">My Account</a>
+                            <a class="btn-link" href="">Shop details</a>
+                            <a class="btn-link" href="">Shopping Cart</a>
+                            <a class="btn-link" href="">Wishlist</a>
+                            <a class="btn-link" href="">Order History</a>
+                            <a class="btn-link" href="">International Orders</a>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="footer-item">
+                            <h4 class="text-light mb-3">Contact</h4>
+                            <p>Address: 1429 Netus Rd, NY 48247</p>
+                            <p>Email: Example@gmail.com</p>
+                            <p>Phone: +0123 4567 8910</p>
+                            <p>Payment Accepted</p>
+                            <img src="img/payment.png" class="img-fluid" alt="">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Footer End -->
+
+        <!-- Copyright Start -->
+        <div class="container-fluid copyright bg-dark py-4">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+                        <span class="text-light"><a href="#"><i class="fas fa-copyright text-light me-2"></i>Your Site Name</a>, All right reserved.</span>
+                    </div>
+                    <div class="col-md-6 my-auto text-center text-md-end text-white">
+                        <!--/* This template is free as long as you keep the below author’s credit link/attribution link/backlink. */-->
+                        <!--/* If you'd like to use the template without the below author’s credit link/attribution link/backlink, */-->
+                        <!--/* you can purchase the Credit Removal License from "https://htmlcodex.com/credit-removal". */-->
+                        Designed By <a class="border-bottom" href="https://htmlcodex.com">HTML Codex</a> Distributed By <a class="border-bottom" href="https://themewagon.com">ThemeWagon</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Copyright End -->
+>>>>>>> de50e4f1d107fd7e7d9137b413efa3fccf8eb121
 
 
 
+        <!-- Back to Top -->
+        <a href="#" class="btn btn-primary border-3 border-primary rounded-circle back-to-top"><i class="fa fa-arrow-up"></i></a>
 
 
 
@@ -592,10 +723,79 @@ $packages = $packagesStmt->fetchAll(PDO::FETCH_ASSOC);
     <!-- Template Javascript -->
     <script src="assets/js/main.js"></script>
     <script src="assets/js/cart.js"></script>
-    <script>
+    <!-- <script>
     document.addEventListener("DOMContentLoaded", updateCartCount);
+<<<<<<< HEAD
     </script> 
+=======
+    </script>  -->
+>>>>>>> de50e4f1d107fd7e7d9137b413efa3fccf8eb121
     
+    <?php 
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        if(!$userLoggedIn) {
+            header("Location: login.php");
+            exit();
+        }
+        $product_id = $_POST["product_id"];
+        $name = $_POST["name"];
+        $price = $_POST["price"];
+        $image = $_POST["image"];
+
+        if (!isset($_SESSION["cart"])) {
+            $_SESSION["cart"] = [];
+        }
+
+        $found = false;
+        foreach ($_SESSION["cart"] as &$item) {
+            if ($item["id"] == $product_id) {
+                $item["quantity"] += 1;
+                $found = true;
+                break;
+            }
+        }
+
+        if (!$found) {
+            $_SESSION["cart"][] = [
+                "id" => $product_id,
+                "name" => $name,
+                "price" => $price,
+                "image" => $image,
+                "quantity" => 1
+            ];
+        }
+
+        // Prevent page reload
+        echo json_encode(["status" => "success", "message" => "Product added to cart"]);
+        exit;
+    }
+
+
+    
+
+    ?>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll("form[action='']").forEach(function(form) {
+            form.addEventListener("submit", function(event) {
+                event.preventDefault();
+                var formData = new FormData(form);
+                fetch("", {
+                    method: "POST",
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        updateCartCount();
+                        alert(data.message);
+                    }
+                });
+            });
+        });
+    });
+    </script>
+
 </body>
 
 </html>

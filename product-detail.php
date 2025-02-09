@@ -64,7 +64,11 @@ if (isset($_GET['id'])) {
         die("Product not found!");
     }
 
+<<<<<<< HEAD
     $review_stmt = $conn->prepare("SELECT * FROM reviews WHERE product_id = ? ORDER BY created_at DESC");
+=======
+    $review_stmt = $conn->prepare("SELECT r.*, u.name FROM reviews r INNER JOIN users u ON r.user_id = u.id WHERE product_id = ? ORDER BY created_at DESC");
+>>>>>>> de50e4f1d107fd7e7d9137b413efa3fccf8eb121
     $review_stmt->execute([$product_id]);
     $reviews = $review_stmt->fetchAll(PDO::FETCH_ASSOC);
 } else {
@@ -173,6 +177,7 @@ if (isset($_GET['id'])) {
     </div>
     <!-- Navbar End -->
 
+<<<<<<< HEAD
         <!-- Single Page Header start -->
         <div class="container-fluid page-header py-5">
             
@@ -271,6 +276,97 @@ if (isset($_GET['id'])) {
                     </div> 
                 </div>
         </div>
+=======
+        <div class="d-flex border border-5 justify-content-center align-items-center ">
+            
+            <!-- Single Product Start -->
+            <div class="container-fluid py-5 mt-5">
+                <div class="container py-5">
+                    <div class="row g-4 ">
+                        <div class="col-lg-8 col-xl-9">
+                            <div class="row g-4">
+                               
+    <div class="container-fluid py-5 mt-5">
+        <div class="container py-5">
+            <div class="row g-4 mb-5">
+                <div class="col-lg-8 col-xl-9">
+                <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="border rounded">
+                <img src="<?php echo htmlspecialchars($product['image']); ?>" class="img-fluid rounded" alt="<?php echo htmlspecialchars($product['name']); ?>">
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <h4 class="fw-bold mb-3"><?php echo htmlspecialchars($product['name']); ?></h4>
+            <p class="mb-3">Category: <?php echo htmlspecialchars($product['category_name']); ?></p>
+            <h5 class="fw-bold mb-3">$<?php echo htmlspecialchars($product['price']); ?></h5>
+            <p class="mb-4"><?php echo htmlspecialchars($product['description']); ?></p>
+    
+            <form action="add_to_cart.php" method="POST">
+                <input type="hidden" name="product_id" value="<?php echo htmlspecialchars($product['id']); ?>">
+                <input type="hidden" name="name" value="<?php echo htmlspecialchars($product['name']); ?>">
+                <input type="hidden" name="price" value="<?php echo htmlspecialchars($product['price']); ?>">
+                <input type="hidden" name="image" value="<?php echo htmlspecialchars($product['image']); ?>">
+    
+                <button type="submit" class="btn border border-secondary rounded-pill px-4 py-2 mb-4 text-primary add-to-casrt">
+                    <i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    
+                    <h4 class="mb-4 fw-bold">Reviews</h4>
+                    <?php if ($reviews): ?>
+                        <?php foreach ($reviews as $review): ?>
+                            <div class="d-flex">
+                                <!-- <img src="img/avatar.jpg" class="img-fluid rounded-circle p-3" style="width: 80px; height: 80px;" alt=""> -->
+                                <div>
+                                    <p class="mb-2 text-muted" style="font-size: 14px;"><?php echo $review['created_at']; ?></p>
+                                    <h5><?php echo htmlspecialchars($review['name']); ?></h5>
+                                    <p><?php echo htmlspecialchars($review['comment']); ?></p>
+                                    <p>Rating: <?php echo str_repeat("⭐", $review['rating']); ?></p>
+                                    <hr>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <p>No reviews yet.</p>
+                    <?php endif; ?>
+    
+                    <form action="submit_review.php" method="POST">
+                        <h4 class="mb-4 fw-bold">Leave a Review</h4>
+                        <input type="text" value="<?php echo $_SESSION['user_id']; ?>" name="user_id" hidden>
+                        <input type="hidden" name="product_id" value="<?php echo $product_id; ?>">
+                        <div class="mb-3">
+                            <textarea name="review" class="form-control" rows="4" placeholder="Your Review *" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label>Rating:</label>
+                            <select name="rating" class="form-select" required>
+                                <option value="5">⭐️⭐️⭐️⭐️⭐️</option>
+                                <option value="4">⭐️⭐️⭐️⭐️</option>
+                                <option value="3">⭐️⭐️⭐️</option>
+                                <option value="2">⭐️⭐️</option>
+                                <option value="1">⭐️</option>
+                            </select>
+                        </div>
+                       <button type="submit" class="btn btn-primary">Submit Review</button>
+                        
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+                              
+                            </div>
+                        </div> 
+                    </div>
+            </div>
+        </div>   
+    </div>            
+>>>>>>> de50e4f1d107fd7e7d9137b413efa3fccf8eb121
         <!-- Single Product End -->
 
                 <!-- Footer Start -->

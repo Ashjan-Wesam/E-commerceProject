@@ -75,6 +75,7 @@ class User {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['fullname'] = $user['name'];
             $_SESSION['email'] = $user['email'];
+            $_SESSION["role_id"] = $user['role_id'];
 
             if ($remember) {
                 $token = bin2hex(random_bytes(32));
@@ -127,9 +128,12 @@ class User {
         return true;
     }
 
+<<<<<<< HEAD
 
 
 
+=======
+>>>>>>> de50e4f1d107fd7e7d9137b413efa3fccf8eb121
     public function changePassword($userId, $currentPassword, $newPassword, $confirmPassword) {
         $stmt = $this->conn->prepare("SELECT password FROM users WHERE id = ?");
         $stmt->execute([$userId]);

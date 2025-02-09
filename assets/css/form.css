@@ -1,0 +1,37 @@
+.form {
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    padding: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    background-color: #f9f9f9;
+    margin: 20px auto;
+
+}
+
+.form > button {
+    background-color: rgb(126, 126, 242);
+    border-radius: 5px;
+    color: #ffffff;
+}
+
+.form > button, .form > input {
+    padding: 1vh 0.5vh;
+    margin: 1vh 0;
+}
+
+.form > input[name="description"] {
+   min-width: 100%;
+}
+
+.flex {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 4vh 0;
+    flex-direction: column;
+}
+
+.error {
+    color: red;
+    font-weight: bold;
+}
